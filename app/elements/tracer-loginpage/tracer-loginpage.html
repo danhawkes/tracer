@@ -1,0 +1,199 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-decorator.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/core-animated-pages/transitions/slide-from-bottom.html">
+
+<polymer-element name="tracer-loginform">
+  <template>
+
+    <link rel="stylesheet" href="tracer-loginpage.css">
+
+    <paper-input-decorator label="Email" floatingLabel="true" isInvalid="{{emailError}}"
+                           error="{{emailError}}">
+      <input id="emailInput" is="core-input" type="email" value="{{email}}">
+    </paper-input-decorator>
+    <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordError}}"
+                           error="{{passwordError}}">
+      <input id="passwordInput" is="core-input" type="password" value="{{password}}">
+    </paper-input-decorator>
+    <div layout vertical>
+      <paper-button on-tap="{{submit}}" class="button" raised>{{submitLabel}}</paper-button>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      publish: {
+        submitLabel: 'Submit'
+      },
+
+      ready: function() {
+
+        // Clear errors on focus
+        this.$.emailInput.addEventListener('focus', function() {
+          this.emailError = null;
+        }.bind(this));
+        this.$.passwordInput.addEventListener('focus', function() {
+          this.passwordError = null;
+        }.bind(this));
+      },
+
+      submit: function() {
+        var input = this.loadInput();
+        if (this.validateInput(input[0], input[1])) {
+          this.fire('tracer-loginform-submit', input);
+        }
+      },
+
+      loadInput: function() {
+        return [this.$.emailInput.value.trim(), this.$.passwordInput.value.trim()];
+      },
+
+      validateInput: function(email, password) {
+        var validate = function(constraints, value) {
+          for (var i = 0; i < constraints.length; i++) {
+            if (!constraints[i][0].test(value)) {
+              return constraints[i][1];
+            }
+          }
+          return null;
+        };
+
+        var notEmpty = [/^\S+$/, "Value is required."];
+        var isEmail = [/^\S+@\S+\.\S+$/, 'Address is not valid.'];
+        var over6Chars = [/^\S{6,}$/, 'Must be 6 characters or longer.'];
+
+        this.emailError = validate([notEmpty, isEmail], email);
+        this.passwordError = validate([notEmpty, over6Chars], password);
+
+        return ((this.emailError == null) && (this.passwordError == null));
+      }
+    });
+  </script>
+</polymer-element>
+
+
+<polymer-element name="tracer-loginpage" attributes="">
+  <template>
+    <link rel="stylesheet" href="tracer-loginpage.css">
+
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
+
+    <div layout vertical fit>
+
+      <core-animated-pages id="formPages" selected="{{(store.user === null) ? selectedPageIndex : 2}}"
+                           transitions="cross-fade slide-from-bottom"
+                           fit>
+        <section>
+          <tracer-card id="loginCard" class="formCard" layout vertical slide-from-bottom>
+            <tracer-loginform submitLabel="Login" on-tracer-loginform-submit="{{login}}"></tracer-loginform>
+          </tracer-card>
+
+          <div layout horizontal center center-justified cross-fade>
+            <paper-button class="toggleFormButton" on-tap="{{toggleFormType}}">Create an account</paper-button>
+          </div>
+        </section>
+
+        <section>
+          <tracer-card id="registerCard" class="formCard" layout vertical slide-from-bottom>
+            <tracer-loginform submitLabel="Register" on-tracer-loginform-submit="{{register}}"></tracer-loginform>
+          </tracer-card>
+
+          <div layout horizontal center center-justified cross-fade>
+            <paper-button class="toggleFormButton" on-tap="{{toggleFormType}}">Already got an account?</paper-button>
+          </div>
+        </section>
+
+        <section>
+          <div layout vertical center slide-from-bottom>
+            <paper-button class="roughlyCentered button" raised on-tap="{{logout}}">Log out</paper-button>
+          </div>
+        </section>
+
+        <section>
+          <div layout vertical center slide-from-bottom>
+            <paper-spinner class="roughlyCentered busySpinner" active></paper-spinner>
+          </div>
+        </section>
+
+      </core-animated-pages>
+    </div>
+
+    <paper-toast id="toast" text="{{toastText}}"></paper-toast>
+
+  </template>
+  <script>
+    (function() {
+
+      var loginPageIndex = 0;
+      var registerPageIndex = 1;
+      var logoutPageIndex = 2;
+      var busyPageIndex = 3;
+
+      Polymer({
+
+        created: function() {
+          this.api = document.createElement('tracer-loginapi');
+          this.selectedPageIndex = loginPageIndex;
+        },
+
+        register: function(e) {
+          this.doApiAction('register', e.detail);
+        },
+
+        login: function(e) {
+          this.doApiAction('login', e.detail);
+        },
+
+        doApiAction: function(action, formData) {
+          var t0 = Date.now();
+          var afterMinDuration = function(after) {
+            var t1 = Date.now();
+            var delay = Math.max(2000 - (t1 - t0), 0);
+            setTimeout(after, delay);
+          };
+
+          var previousPageIndex = this.selectedPageIndex;
+          this.selectedPageIndex = busyPageIndex;
+
+          this.api[action](formData[0], formData[1]).then(function(user) {
+            afterMinDuration(function() {
+              this.selectedPageIndex = logoutPageIndex;
+              this.store.user = user;
+              this.showToast('Logged in.');
+            }.bind(this));
+          }.bind(this)).catch(function(e) {
+            afterMinDuration(function() {
+              this.selectedPageIndex = previousPageIndex;
+              this.showToast(e.message);
+            }.bind(this));
+          }.bind(this));
+        },
+
+        logout: function() {
+          this.selectedPageIndex = loginPageIndex;
+          this.store.user = null;
+        },
+
+        toggleFormType: function() {
+          if (this.selectedPageIndex === loginPageIndex) {
+            this.selectedPageIndex = registerPageIndex;
+          } else if (this.selectedPageIndex === registerPageIndex) {
+            this.selectedPageIndex = loginPageIndex;
+          }
+        },
+
+        showToast: function(message) {
+          this.toastText = message;
+          this.$.toast.show();
+        }
+      });
+    })();
+  </script>
+</polymer-element>

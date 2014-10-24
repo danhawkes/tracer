@@ -1,0 +1,36 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="tracer-loginapi">
+  <script>
+    Polymer({
+
+      login: function(username, password) {
+        return this.sendRequest('login', username, password);
+      },
+
+      register: function(username, password) {
+        return this.sendRequest('register', username, password);
+      },
+
+      sendRequest: function(path, username, password) {
+        return new Promise(function(resolve, reject) {
+          var req = new XMLHttpRequest();
+          req.open('POST', 'http://tracer-dev.arcs.co/' + path, true);
+          req.responseType = 'json';
+          req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          req.onload = function(e) {
+            if (req.status === 200) {
+              resolve(req.response);
+            } else {
+              reject(req.response);
+            }
+          };
+          req.onerror = function(e) {
+            reject(e);
+          };
+          req.send('username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password));
+        });
+      }
+    });
+  </script>
+</polymer-element>

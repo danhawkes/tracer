@@ -1,0 +1,191 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../bower_components/core-selector/core-selector.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+
+<polymer-element name="tracer-traceslistpage">
+
+  <template>
+    <link rel="stylesheet" href="tracer-traceslistpage.css">
+
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
+
+    <div layout fit>
+      <core-animated-pages id="pages" fit selected="{{selectedListPageIndex}}"
+                           transitions="hero-transition cross-fade"
+                           on-core-animated-pages-transition-end="{{onTransitionEnd}}">
+        <section>
+          <div id="summaryPage" fit layout vertical>
+            <paper-shadow id="summaryMapCard" class="card" hero hero-id="map">
+              <tracer-map id="map" fit path="{{trace.positions}}"
+                          showPath="true">
+              </tracer-map>
+              <paper-fab hero hero-id="fab" icon="expand-more" hidden?="{{selectedTraceIndex === -1}}"
+                         on-tap="{{toggleDetailView}}"></paper-fab>
+            </paper-shadow>
+
+            <paper-shadow id="summaryListCard" class="card" flex cross-fade>
+              <div fit>
+                <core-selector selected="{{selectedTraceIndex}}" selectedAttribute="">
+                  <template repeat="{{item in items}}">
+                    <paper-item>{{item.date | formatDate}}</paper-item>
+                  </template>
+                </core-selector>
+              </div>
+            </paper-shadow>
+          </div>
+        </section>
+
+        <section>
+          <div id="detailPage" fit>
+            <core-animated-pages id="detailSubPages" hero hero-id="map" fit selected="{{selectedInfoPageIndex}}"
+                                 transitions="cross-fade">
+              <section>
+                <tracer-map id="infoMap" cross-fade fit path="{{trace.positions}}" showPath="true"></tracer-map>
+              </section>
+              <section>
+                <paper-shadow id="detailMetricsCard" class="card" cross-fade>
+                  <paper-item>Duration: {{trace | formatDuration}}</paper-item>
+                  <paper-item>Duration: {{trace | formatDistance}}</paper-item>
+                  <paper-item>Elevation change: {{trace | formatElevationChange}}</paper-item>
+                  <paper-item>Calories: 456 kcal</paper-item>
+                </paper-shadow>
+              </section>
+            </core-animated-pages>
+            <core-toolbar id="detailToolbar" cross-fade fit layout>
+              <paper-tabs id="detailToolbarTabs" selected="{{selectedInfoPageIndex}}" flex>
+                <paper-tab>MAP</paper-tab>
+                <paper-tab>STATS</paper-tab>
+              </paper-tabs>
+            </core-toolbar>
+            <paper-fab hero hero-id="fab" icon="expand-less" on-tap="{{toggleDetailView}}"></paper-fab>
+          </div>
+        </section>
+      </core-animated-pages>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      created: function() {
+        this.items = [];
+        this.selectedTraceIndex = -1;
+      },
+
+      ready: function() {
+        if (this.store) {
+          this.updateList();
+          this.store.addEventListener('modified', function(e) {
+            this.updateList();
+          }.bind(this));
+        }
+      },
+
+      itemsChanged: function() {
+        if (this.items.length === 0) {
+          // Select none if list is now empty
+          this.selectedTraceIndex = -1;
+        } else if (this.selectedTraceIndex === -1 || (this.selectedTraceIndex + 1) >= this.items.length) {
+          // Select first item if previous selection is now out of range, or there was no previous selection
+          this.selectedTraceIndex = 0;
+        } else {
+          // Selection is still valid, but data is stale. Reload trace.
+          this.loadTrace(this.items[this.selectedTraceIndex]._id);
+        }
+      },
+
+      selectedTraceIndexChanged: function() {
+        if (this.selectedTraceIndex >= 0) {
+          this.loadTrace(this.items[this.selectedTraceIndex]._id);
+        } else {
+          this.trace = null;
+        }
+      },
+
+      loadTrace: function(traceId) {
+        this.store.loadTrace(traceId).then(function(trace) {
+          this.trace = trace;
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
+      },
+
+      updateSize: function() {
+        this.$.map.updateSize();
+      },
+
+      updateList: function() {
+        this.store.listTraces().then(function(items) {
+          this.items = items;
+        }.bind(this)).catch(function(err) {
+          console.print('error while listing traces:');
+          console.print(err);
+        });
+      },
+
+      formatDate: function(date) {
+        return new Date(date).toLocaleDateString('en', {
+          hour12: true,
+          minute: 'numeric',
+          hour: 'numeric',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+      },
+
+      formatDuration: function(trace) {
+        if (trace) {
+          var d = new Date(trace.duration());
+          var s = '';
+          var hours = d.getHours;
+          var mins = d.getMinutes();
+          var seconds = d.getSeconds();
+          if (hours > 0) {
+            s += hours + ' hours';
+          }
+          if (mins > 0) {
+            s += mins + ' mins';
+          }
+          s += seconds + ' seconds';
+          return s;
+        } else {
+          return '';
+        }
+      },
+
+      formatDistance: function(trace) {
+        if (trace) {
+          return 'Bloody miles!';
+        } else {
+          return '';
+        }
+      },
+
+      formatElevationChange: function(trace) {
+        if (trace) {
+          return trace.elevationChange().toFixed(1) + 'm';
+        } else {
+          return '';
+        }
+      },
+
+      toggleDetailView: function() {
+        this.selectedListPageIndex = this.selectedListPageIndex == 0 ? 1 : 0;
+      },
+
+      onTransitionEnd: function() {
+        if (this.selectedListPageIndex == 1) {
+          this.$.infoMap.updateSize();
+        }
+      }
+    });
+  </script>
+</polymer-element>

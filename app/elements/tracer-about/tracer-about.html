@@ -1,0 +1,29 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/core-transition/core-transition.html">
+
+<polymer-element name="tracer-about">
+  <template>
+    <paper-action-dialog id="dialog" heading="Tracer" transition="core-transition-center">
+      <p>
+        Built with
+        <a href="https://www.polymer-project.org">Polymer</a>,
+        <a href="http://leafletjs.com/">Leaflet.js</a> and
+        <a href="https://www.mapbox.com">Mapbox</a>.
+      </p>
+
+      <p>
+        Contribute on <a href="https://github.com/danhawkes/tracer">Github</a>.
+      </p>
+      <paper-button affirmative>OK</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+    Polymer({
+      show: function() {
+        this.$.dialog.open();
+      }
+    });
+  </script>
+</polymer-element>

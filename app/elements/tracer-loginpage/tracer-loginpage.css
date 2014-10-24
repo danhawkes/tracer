@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+
+:host .formCard {
+  padding: 16px;
+}
+
+:host .button {
+  margin-top: 16px;
+  background: #FFEB3B;
+}
+
+:host .toggleFormButton {
+  text-transform: none;
+}
+
+:host .roughlyCentered {
+  margin-top: 96px;
+}
+
+:host .busySpinner::shadow .circle {
+  border-color: black;
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Tracer",
+  "description": "Record where you've been, and upload tracks to other services.",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danhawkes/tracer.git"
+  },
+  "author": {
+    "name": "Dan Hawkes"
+  },
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.10.1",
+    "bower": "^1.3.12",
+    "compression": "^1.3.0",
+    "connect": "~2.19.5",
+    "connect-flash": "^0.1.1",
+    "connect-livereload": "~0.4.0",
+    "cookie-parser": "^1.3.3",
+    "express": "^4.10.7",
+    "express-session": "^1.10.1",
+    "grunt": "~0.4.1",
+    "grunt-autoprefixer": "^1.0.0",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-clean": "0.5.0",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-connect": "0.8.0",
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-contrib-cssmin": "~0.10.0",
+    "grunt-contrib-imagemin": "0.7.1",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-firefox-manifest": "^0.1.3",
+    "grunt-firefox-package": "^0.3.0",
+    "grunt-minify-html": "^0.1.0",
+    "grunt-open": "~0.2.3",
+    "grunt-pagespeed": "~0.3.0",
+    "grunt-rev": "~0.1.0",
+    "grunt-usemin": "~2.3.0",
+    "grunt-vulcanize": "~0.5.0",
+    "jshint-stylish": "~0.4.0",
+    "load-grunt-tasks": "~0.6.0",
+    "morgan": "^1.5.1",
+    "passport": "^0.2.1",
+    "passport-local": "^1.0.0",
+    "request": "^2.51.0",
+    "serve-static": "^1.7.1",
+    "time-grunt": "~0.4.0"
+  },
+  "scripts": {
+    "postinstall": "bower --quiet --allow-root install --production --interactive=false && npm run build",
+    "build": "./node_modules/.bin/grunt build"
+  },
+  "engines": {
+    "node": "^0.10.0"
+  },
+  "firefoxManifest": {
+    "launch_path": "/index.html",
+    "default_locale": "en",
+    "icons": {
+      "128": "/images/icon-128.png",
+      "512": "/images/icon-512.png"
+    },
+    "permissions": {
+      "geolocation": {
+        "description": "Required to find your location."
+      }
+    },
+    "type": "web"
+  }
+}
