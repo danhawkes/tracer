@@ -1,0 +1,65 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="mocks.js"></script>
+
+<polymer-element name="tracer-model" attributes="positions">
+  <script>
+    Polymer({
+
+      publish: {
+        running: false,
+        lastPosition: null,
+      },
+
+      created: function() {
+        this.positions = [];
+        this.watchId = 0;
+        this.watchOptions = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 60 * 1000 * 30
+        };
+        // this.geolocation = new Mocks.geolocation();
+        this.geolocation = window.navigator.geolocation;
+      },
+
+      runningChanged: function(oldValue, newValue) {
+        if (newValue) {
+          this.start();
+        } else {
+          this.stop();
+        }
+      },
+
+      positionsChanged: function(oldValue, newValue) {
+        console.log('new positions: ' + newValue);
+      },
+
+      recordPosition: function(position) {
+        this.lastPosition = [
+          position.coords.latitude,
+          position.coords.longitude
+        ];
+
+        var tmp = this.positions.slice();
+        tmp.push(this.lastPosition);
+        this.positions = tmp;
+      },
+
+      recordError: function(error) {
+        console.log(error);
+      },
+
+      start: function() {
+        console.log('started');
+        watchId = this.geolocation.watchPosition(this.recordPosition.bind(this), this.recordError.bind(this), this.watchOptions);
+      },
+
+      stop: function() {
+        console.log('stopped');
+        this.geolocation.clearWatch(watchId);
+        this.lastPosition = null;
+        this.positions = [];
+      },
+    });
+  </script>
+</polymer-element>

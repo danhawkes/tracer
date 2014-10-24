@@ -1,0 +1,17 @@
+core-toolbar {
+  background: #fff600;
+  z-index: 1;
+}
+paper-fab {
+  background: #fff600;
+  margin: 32px;
+  color: black;
+}
+#container {
+  height: 100%;
+}
+#fab {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}

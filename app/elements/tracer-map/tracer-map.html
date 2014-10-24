@@ -1,0 +1,85 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../bower_components/leaflet/dist/leaflet.js"></script>
+
+<polymer-element name="tracer-map" attributes="position path">
+
+  <template>
+
+    <link rel="stylesheet" href="tracer-map.css">
+    <link rel="stylesheet" href="../../bower_components/leaflet/dist/leaflet.css">
+
+    <div id="map"></div>
+
+  </template>
+
+  <script>
+    Polymer({
+      publish: {
+        zoom: 15
+      },
+      created: function() {
+        // Start in London rather than at (0,0).
+        this.position = [51.5064, -0.1132];
+        this.path = [];
+
+        this.ignoreNextPositionChange = false;
+        this.pathLayer = null;
+        this.markerLayer = null;
+      },
+      attached: function() {
+        var tileServer = 'http://api.tiles.mapbox.com/v4/v68938sdp8yb.jppglj62/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoidjY4OTM4c2RwOHliIiwiYSI6InBmb2Z1YTQifQ.vu-0amgOM6LMK17-EAb3Dw';
+        var tileLayer = L.tileLayer(tileServer, {
+          detectRetina: true
+        });
+
+        this.map = L.map(this.$.map, {
+          center: L.latLng(this.position[0], this.position[1]),
+          zoom: this.zoom,
+          layers: [tileLayer],
+          attributionControl: false,
+          zoomControl: false
+        });
+
+        this.map.on('zoomend', function(event) {
+          this.zoom = event.target.getZoom();
+        }.bind(this));
+
+        this.map.on('dragend', function(event) {
+          var center = event.target.getCenter();
+          this.ignoreNextPositionChange = true;
+          this.position = [center.lat, center.lng];
+        }.bind(this));
+      },
+      pathChanged: function(oldPath, path) {
+        if (this.pathLayer) {
+          this.map.removeLayer(this.pathLayer);
+          this.pathLayer = null;
+        }
+        if (this.markerLayer) {
+          this.map.removeLayer(this.markerLayer);
+          this.markerLayer = null;
+        }
+
+        if (path.length > 0) {
+
+          this.pathLayer = L.polyline(path, {
+            color: '#fff600'
+          }).addTo(this.map);
+
+          this.markerLayer = L.marker(path[path.length - 1], {
+            icon: L.divIcon({
+              className: 'center-icon'
+            })
+          }).addTo(this.map);
+        }
+      },
+      positionChanged: function(oldPosition, newPosition) {
+        if (!this.ignoreNextPositionChange) {
+          this.map.setView(L.latLng(newPosition[0], newPosition[1]), 16, {
+            animate: true
+          });
+        }
+      }
+    });
+  </script>
+</polymer-element>

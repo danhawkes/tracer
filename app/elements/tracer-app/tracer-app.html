@@ -1,0 +1,110 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../bower_components/core-icon-button/core-icon-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/core-icons/core-icons.html">
+<link rel="import" href="../../bower_components/core-icons/av-icons.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog-transition.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/font-roboto/roboto.html" />
+<link rel="import" href="../tracer-model/tracer-model.html">
+<link rel="import" href="../tracer-map/tracer-map.html">
+
+<polymer-element name="tracer-app" layout>
+
+  <template>
+    <link rel="stylesheet" href="tracer-app.css">
+
+    <tracer-model id="model" lastPosition="{{lastPosition}}" running="{{running}}" positions="{{positions}}"></tracer-model>
+
+    <div id="container" layout vertical>
+
+      <core-toolbar>
+        <paper-shadow></paper-shadow>
+        <div flex>Tracer</div>
+        <paper-icon-button hidden?="{{!installable}}" icon="cloud-download" on-click="{{onInstallClick}}"></paper-icon-button>
+        <paper-menu-button id="menu" icon="more-vert" halign="right" on-core-select="{{onMenuItemSelected}}">
+          <template repeat="{{menuItems}}">
+            <paper-item>{{}}</paper-item>
+          </template>
+        </paper-menu-button>
+      </core-toolbar>
+
+      <tracer-map id="map" flex path="{{positions}}"></tracer-map>
+
+      <paper-fab id="fab" icon="{{running ? 'av:stop' : 'av:play-arrow'}}" on-click="{{onStartStopClick}}"></paper-fab>
+
+      <paper-dialog id="aboutDialog" heading="About" transition="paper-dialog-transition-center">
+        <p>
+          Credits:
+          <a href="https://www.polymer-project.org">Polymer</a>,
+          <a href="http://leafletjs.com/">Leaflet.js</a> and
+          <a href="https://www.mapbox.com">Mapbox</a>.
+        </p>
+        <p>
+          Contribute on Github: <a href="https://github.com/danhawkes/tracer">Tracer</a>
+        </p>
+        <paper-button affirmative autofocus>OK</paper-button>
+      </paper-dialog>
+
+      <paper-toast id="uploadToast" text="// TODO"></paper-toast>
+
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      created: function() {
+        this.menuItems = ['My traces', 'Instructions', 'About'];
+        this.manifestUrl = location.href + 'package/manifest.webapp';
+        this.installable = false;
+
+        if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
+          var request = navigator.mozApps.checkInstalled(this.manifestUrl)
+          request.onsuccess = function(e) {
+            if (!request.result) {
+              this.installable = true;
+            }
+          }.bind(this);
+        }
+      },
+      onStartStopClick: function() {
+        this.$.model.running = !this.$.model.running;
+      },
+      lastPositionChanged: function(oldPos, newPos) {
+        if (!oldPos) {
+          this.$.map.position = newPos;
+        }
+      },
+      onInstallClick: function() {
+        var installLocFind = navigator.mozApps.installPackage(this.manifestUrl);
+        installLocFind.onsuccess = function(data) {
+          this.installable = false;
+        }.bind(this);
+        installLocFind.onerror = function() {
+          alert(installLocFind.error.name);
+        };
+      },
+      onMenuItemSelected: function(e) {
+        if (e.detail.isSelected) {
+          var label = e.detail.item.innerHTML;
+          if (label === this.menuItems[0]) {
+            console.log(label);
+          } else if (label === this.menuItems[1]) {
+            console.log(label);
+          } else if (label === this.menuItems[2]) {
+            this.$.aboutDialog.opened = true;
+          }
+        }
+        this.$.menu.selected = null;
+      }
+    });
+  </script>
+</polymer-element>
