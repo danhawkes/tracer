@@ -260,8 +260,18 @@ module.exports = function(grunt) {
           threshold: 80
         }
       }
+    },
+    firefoxManifest: {
+      options: {
+        manifest: '<%= yeoman.dist %>/manifest.webapp'
+      },
+      your_target: {
+        // Target-specific file lists and/or options go here.
+      }
     }
   });
+
+  grunt.loadNpmTasks('grunt-firefox-manifest');
 
   grunt.registerTask('server', function(target) {
     grunt.log.warn(
@@ -302,7 +312,8 @@ module.exports = function(grunt) {
     'cssmin',
     'vulcanize',
     'usemin',
-    'minifyHtml'
+    'minifyHtml',
+    'firefoxManifest'
   ]);
 
   grunt.registerTask('default', [
