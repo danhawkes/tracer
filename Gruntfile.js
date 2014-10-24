@@ -297,7 +297,6 @@ module.exports = function(grunt) {
     'imagemin',
     'concat',
     'autoprefixer',
-    'uglify',
     'cssmin',
     'vulcanize',
     'usemin',
