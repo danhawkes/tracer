@@ -1,7 +1,9 @@
 'use strict';
 var LIVERELOAD_PORT = 35729;
-var lrSnippet = require('connect-livereload')({port: LIVERELOAD_PORT});
-var mountFolder = function (connect, dir) {
+var lrSnippet = require('connect-livereload')({
+  port: LIVERELOAD_PORT
+});
+var mountFolder = function(connect, dir) {
   return connect.static(require('path').resolve(dir));
 };
 
@@ -11,7 +13,7 @@ var mountFolder = function (connect, dir) {
 // use this if you want to match all subfolders:
 // 'test/spec/**/*.js'
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks
@@ -28,7 +30,9 @@ module.exports = function (grunt) {
     watch: {
       options: {
         nospawn: true,
-        livereload: { liveCSS: false }
+        livereload: {
+          liveCSS: false
+        }
       },
       livereload: {
         options: {
@@ -84,7 +88,7 @@ module.exports = function (grunt) {
       },
       livereload: {
         options: {
-          middleware: function (connect) {
+          middleware: function(connect) {
             return [
               lrSnippet,
               mountFolder(connect, '.tmp'),
@@ -98,7 +102,7 @@ module.exports = function (grunt) {
           open: {
             target: 'http://localhost:<%= connect.options.port %>/test'
           },
-          middleware: function (connect) {
+          middleware: function(connect) {
             return [
               mountFolder(connect, yeomanConfig.app)
             ];
@@ -108,7 +112,7 @@ module.exports = function (grunt) {
       },
       dist: {
         options: {
-          middleware: function (connect) {
+          middleware: function(connect) {
             return [
               mountFolder(connect, yeomanConfig.dist)
             ];
@@ -148,8 +152,9 @@ module.exports = function (grunt) {
       options: {
         dirs: ['<%= yeoman.dist %>'],
         blockReplacements: {
-          vulcanized: function (block) {
-            return '<link rel="import" href="' + block.dest + '">';
+          vulcanized: function(block) {
+            return '<link rel="import" href="' + block.dest +
+              '">';
           }
         }
       }
@@ -256,14 +261,18 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('server', function (target) {
-    grunt.log.warn('The `server` task has been deprecated. Use `grunt serve` to start a server.');
+  grunt.registerTask('server', function(target) {
+    grunt.log.warn(
+      'The `server` task has been deprecated. Use `grunt serve` to start a server.'
+    );
     grunt.task.run(['serve:' + target]);
   });
 
-  grunt.registerTask('serve', function (target) {
+  grunt.registerTask('serve', function(target) {
     if (target === 'dist') {
-      return grunt.task.run(['build', 'open', 'connect:dist:keepalive']);
+      return grunt.task.run(['build', 'open',
+        'connect:dist:keepalive'
+      ]);
     }
 
     grunt.task.run([
