@@ -63,7 +63,7 @@
     Polymer({
       created: function() {
         this.menuItems = ['My traces', 'Instructions', 'About'];
-        this.manifestUrl = location.href + 'package/manifest.webapp';
+        this.manifestUrl = location.href + 'packaged/mini-manifest.webapp';
         this.installable = false;
 
         if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {

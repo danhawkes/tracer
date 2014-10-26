@@ -84,7 +84,7 @@ module.exports = function(grunt) {
       options: {
         port: 9000,
         // change this to '0.0.0.0' to access the server from outside
-        hostname: 'localhost'
+        hostname: '0.0.0.0'
       },
       livereload: {
         options: {
@@ -163,8 +163,7 @@ module.exports = function(grunt) {
       default: {
         options: {
           strip: true,
-          csp: true,
-
+          csp: true
         },
         files: {
           '<%= yeoman.dist %>/elements/elements.vulcanized.html': [
@@ -240,6 +239,7 @@ module.exports = function(grunt) {
           src: ['{styles,elements}/{,*/}*.css']
         }]
       }
+
     },
     // See this tutorial if you'd like to run PageSpeed
     // against localhost: http://www.jamescryer.com/2014/06/12/grunt-pagespeed-and-ngrok-locally-testing/
@@ -262,23 +262,26 @@ module.exports = function(grunt) {
       }
     },
     firefoxManifest: {
-      options: {
-        manifest: '<%= yeoman.dist %>/manifest.webapp'
-      },
-      your_target: {
-        // Target-specific file lists and/or options go here.
+      dist: {
+        options: {
+          manifest: '<%= yeoman.dist %>/manifest.webapp'
+        },
+      }
+    },
+    firefoxPackage: {
+      dist: {
+        options: {
+          packageUrl: 'http://178.62.29.239/packaged/package.zip',
+          source: '<%= yeoman.dist %>',
+          outputPackage: '<%= yeoman.dist %>/packaged/package.zip',
+          outputMiniManifest: '<%= yeoman.dist %>/packaged/mini-manifest.webapp'
+        }
       }
     }
   });
 
   grunt.loadNpmTasks('grunt-firefox-manifest');
-
-  grunt.registerTask('server', function(target) {
-    grunt.log.warn(
-      'The `server` task has been deprecated. Use `grunt serve` to start a server.'
-    );
-    grunt.task.run(['serve:' + target]);
-  });
+  grunt.loadNpmTasks('grunt-firefox-package');
 
   grunt.registerTask('serve', function(target) {
     if (target === 'dist') {
@@ -302,8 +305,14 @@ module.exports = function(grunt) {
     'connect:test'
   ]);
 
+  grunt.registerTask('test', [
+    'clean:server',
+    'connect:test'
+  ]);
+
   grunt.registerTask('build', [
     'clean:dist',
+    'firefoxManifest:dist',
     'copy',
     'useminPrepare',
     'imagemin',
@@ -313,7 +322,7 @@ module.exports = function(grunt) {
     'vulcanize',
     'usemin',
     'minifyHtml',
-    'firefoxManifest'
+    'firefoxPackage:dist'
   ]);
 
   grunt.registerTask('default', [

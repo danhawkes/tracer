@@ -1,0 +1,20 @@
+{
+  "launch_path": "/index.html",
+  "default_locale": "en",
+  "icons": {
+    "128": "/images/icon-128.png",
+    "512": "/images/icon-512.png"
+  },
+  "permissions": {
+    "geolocation": {
+      "description": "Required to find your location."
+    }
+  },
+  "type": "web",
+  "name": "Tracer",
+  "description": "Record where you've been, and upload tracks to other services.",
+  "version": "0.1.0",
+  "developer": {
+    "name": "Dan Hawkes"
+  }
+}
