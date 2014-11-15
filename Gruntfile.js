@@ -271,7 +271,7 @@ module.exports = function(grunt) {
     firefoxPackage: {
       dist: {
         options: {
-          packageUrl: 'http://178.62.29.239/packaged/package.zip',
+          packageUrl: 'http://tracer.fractalsands.com/packaged/package.zip',
           source: '<%= yeoman.dist %>',
           outputPackage: '<%= yeoman.dist %>/packaged/package.zip',
           outputMiniManifest: '<%= yeoman.dist %>/packaged/mini-manifest.webapp'
