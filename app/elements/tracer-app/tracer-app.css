@@ -1,6 +1,8 @@
+#toolbar-container {
+  z-index: 1;
+}
 core-toolbar {
   background: #fff600;
-  z-index: 1;
 }
 paper-fab {
   background: #fff600;
@@ -14,4 +16,7 @@ paper-fab {
   position: absolute;
   bottom: 0;
   right: 0;
+}
+#menubuttonalignfix {
+  height: 40px;
 }
