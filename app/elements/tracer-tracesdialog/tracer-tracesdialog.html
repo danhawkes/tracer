@@ -1,0 +1,119 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../../bower_components/core-list/core-list.html">
+
+<polymer-element name="tracer-tracesdialog" extends="paper-action-dialog" heading="Traces"
+                 transition="core-transition-center" on-core-overlay-close-completed="{{closedAction}}">
+
+  <!-- Duplicated -->
+  <template>
+    <style>
+      :host {
+        background: #fff;
+        color: rgba(0, 0, 0, 0.87);
+        margin: 32px;
+        overflow: visible !important;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      #scroller {
+        overflow: auto;
+        box-sizing: border-box;
+        padding: 24px 24px 0 24px;
+      }
+
+      #actions {
+        padding: 16px;
+      }
+
+      #content {
+        width: 400px;
+        height: 400px;
+      }
+
+      #list {
+        width: 200px;
+        height: 200px;
+      }
+    </style>
+    <paper-shadow z="3" fit></paper-shadow>
+    <div id="scroller" relative>
+      <template if="{{heading}}">
+        <h1>{{heading}}</h1>
+      </template>
+      <!-- /Duplicated -->
+
+
+      <div id="content" self-flex>
+        <template repeat="{{item, index in items}}">
+          <paper-item data-value="{{index}}" on-tap="{{onItemTap}}">
+            {{item.id | timestampToDate}}
+          </paper-item>
+        </template>
+      </div>
+
+
+      <!-- Duplicated -->
+    </div>
+    <div id="actions" relative layout horizontal>
+      <content select="[dismissive]"></content>
+      <div flex></div>
+      <content select="[affirmative]"></content>
+      <!-- /Duplicated -->
+
+
+      <paper-button affirmative on-tap="{{close}}">OK</paper-button>
+
+
+      <!-- Duplicated -->
+    </div>
+  </template>
+  <!-- /Duplicated -->
+
+
+  <script>
+    Polymer({
+      publish: {
+
+        db: {}
+
+        /**
+         * Fired when a trace is selected from the list.
+         * @event trace-select
+         */
+      },
+
+      created: function() {
+        this.super();
+        this.items = [];
+      },
+
+      openAction: function() {
+        this.super();
+        this.db.listTraces().then(function(doc) {
+          this.items = doc.rows;
+        }.bind(this)).catch(function(err) {
+          console.print('error while listing traces:')
+          console.print(err);
+        });
+      },
+
+      closedAction: function() {
+        this.items = [];
+      },
+
+      timestampToDate: function(timestamp) {
+        return new Date(Number(timestamp)).toUTCString();
+      },
+
+      onItemTap: function(e, detail, sender) {
+        var index = sender.dataset.value;
+        this.fire('trace-select', this.items[index].id);
+        this.close();
+      }
+    });
+  </script>
+</polymer-element>

@@ -1,85 +1,170 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+
 <script src="../../bower_components/leaflet/dist/leaflet.js"></script>
 
-<polymer-element name="tracer-map" attributes="position path">
+<polymer-element name="tracer-map">
 
   <template>
 
     <link rel="stylesheet" href="tracer-map.css">
     <link rel="stylesheet" href="../../bower_components/leaflet/dist/leaflet.css">
 
-    <div id="map"></div>
+    <div id="map" fit></div>
 
   </template>
 
   <script>
-    Polymer({
-      publish: {
-        zoom: 15
-      },
-      created: function() {
-        // Start in London rather than at (0,0).
-        this.position = [51.5064, -0.1132];
-        this.path = [];
+    (function() {
 
-        this.ignoreNextPositionChange = false;
-        this.pathLayer = null;
-        this.markerLayer = null;
-      },
-      attached: function() {
-        var tileServer = 'http://api.tiles.mapbox.com/v4/v68938sdp8yb.jppglj62/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoidjY4OTM4c2RwOHliIiwiYSI6InBmb2Z1YTQifQ.vu-0amgOM6LMK17-EAb3Dw';
-        var tileLayer = L.tileLayer(tileServer, {
-          detectRetina: true
-        });
+      var DEFAULT_POSITION = {
+        // London
+        lat: 51.5064,
+        lng: -0.1132
+      };
 
-        this.map = L.map(this.$.map, {
-          center: L.latLng(this.position[0], this.position[1]),
-          zoom: this.zoom,
-          layers: [tileLayer],
-          attributionControl: false,
-          zoomControl: false
-        });
+      Polymer({
+        publish: {
 
-        this.map.on('zoomend', function(event) {
-          this.zoom = event.target.getZoom();
-        }.bind(this));
+          /**
+           * Point at which to draw a dot indicating the current location.
+           * @attribute
+           * @type Object
+           * @default null
+           */
+          marker: null,
 
-        this.map.on('dragend', function(event) {
-          var center = event.target.getCenter();
-          this.ignoreNextPositionChange = true;
-          this.position = [center.lat, center.lng];
-        }.bind(this));
-      },
-      pathChanged: function(oldPath, path) {
-        if (this.pathLayer) {
-          this.map.removeLayer(this.pathLayer);
+          /**
+           * Array of positions to draw as a polyline.
+           * @attribute
+           * @type Array
+           * @default An empty array.
+           */
+          path: [],
+
+          /**
+           * Whether to move the map to keep the current position in the centre. This attribute is automatically set to
+           * false when the user scrolls or zooms the map away from the current position.
+           * @attribute
+           * @type boolean
+           * @default false
+           */
+          follow: false
+        },
+
+        created: function() {
+          this.zoom = 15;
+          this.pathLine = null;
           this.pathLayer = null;
-        }
-        if (this.markerLayer) {
-          this.map.removeLayer(this.markerLayer);
           this.markerLayer = null;
-        }
+          this.ignoreZoomStart = false;
+        },
 
-        if (path.length > 0) {
+        domReady: function() {
+          var tileServer = 'http://api.tiles.mapbox.com/v4/v68938sdp8yb.jppglj62/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoidjY4OTM4c2RwOHliIiwiYSI6InBmb2Z1YTQifQ.vu-0amgOM6LMK17-EAb3Dw';
+          var tileLayer = L.tileLayer(tileServer, {
+            detectRetina: true
+          });
 
-          this.pathLayer = L.polyline(path, {
-            color: '#fff600'
-          }).addTo(this.map);
+          this.map = L.map(this.$.map, {
+            center: this.marker ? L.latLng(this.marker.lat, this.marker.lng) : DEFAULT_POSITION,
+            zoom: this.zoom,
+            layers: [tileLayer],
+            attributionControl: false,
+            zoomControl: false
+          });
 
-          this.markerLayer = L.marker(path[path.length - 1], {
-            icon: L.divIcon({
-              className: 'center-icon'
-            })
-          }).addTo(this.map);
-        }
-      },
-      positionChanged: function(oldPosition, newPosition) {
-        if (!this.ignoreNextPositionChange) {
-          this.map.setView(L.latLng(newPosition[0], newPosition[1]), 16, {
+          this.map.on('zoomstart', function(event) {
+            if (this.ignoreZoomStart) {
+              this.ignoreZoomStart = false;
+            } else {
+              this.follow = false;
+            }
+          }.bind(this));
+
+          this.map.on('dragstart', function(event) {
+            this.follow = false;
+          }.bind(this));
+        },
+
+        /**
+         * Moves the map to show the entire path, if there is one.
+         * @method
+         */
+        showPath: function() {
+          if (this.path && this.path.length > 0) {
+            this.follow = false;
+            this.marker = null;
+            this.setMapToShowPath();
+          }
+        },
+
+        markerChanged: function(oldPos, newPos) {
+          this.updateDisplayedMarker(newPos);
+          if (newPos) {
+            if (this.follow) {
+              this.setMapToCurrentPosition();
+            }
+          }
+        },
+
+        pathChanged: function(oldPath, path) {
+          // TODO: 'path' is often undefined here because of some race condition
+          // around array mutation. Waiting a few milliseconds is a workaround
+          // to ensure the mutation has finished.
+          setTimeout(function() {
+            this.updateDisplayedPath(this.path);
+          }.bind(this), 10);
+        },
+
+        followChanged: function(oldValue, newValue) {
+          if (newValue) {
+            if (this.marker) {
+              this.setMapToCurrentPosition();
+            }
+          }
+        },
+
+        updateDisplayedPath: function(path) {
+          if (this.pathLayer) {
+            this.map.removeLayer(this.pathLayer);
+            this.pathLayer = null;
+          }
+          if (path && (path.length > 0)) {
+            this.pathLine = L.polyline(path, {
+              color: '#fff600',
+              opacity: 0.8
+            });
+            this.pathLayer = this.pathLine.addTo(this.map);
+          }
+        },
+
+        updateDisplayedMarker: function(marker) {
+          if (this.markerLayer) {
+            this.map.removeLayer(this.markerLayer);
+            this.markerLayer = null;
+          }
+          if (marker) {
+            this.markerLayer = L.marker(marker, {
+              icon: L.divIcon({
+                className: 'center-icon'
+              })
+            }).addTo(this.map);
+          }
+        },
+
+        setMapToCurrentPosition: function() {
+          var zoom = 16;
+          this.ignoreZoomStart = this.map.getZoom() !== zoom;
+          this.map.setView(L.latLng(this.marker.lat, this.marker.lng), zoom, {
             animate: true
           });
+        },
+
+        setMapToShowPath: function() {
+          this.map.fitBounds(this.pathLine.getBounds());
         }
-      }
-    });
+      });
+    })
+    ();
   </script>
 </polymer-element>

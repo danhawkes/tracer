@@ -33,12 +33,11 @@
     "grunt-pagespeed": "~0.3.0",
     "grunt-rev": "~0.1.0",
     "grunt-usemin": "~2.3.0",
-    "grunt-vulcanize": "~0.4.0",
+    "grunt-vulcanize": "~0.5.0",
     "jshint-stylish": "~0.4.0",
     "load-grunt-tasks": "~0.6.0",
     "serve-static": "^1.7.1",
-    "time-grunt": "~0.4.0",
-    "vulcanize": "^0.4.1"
+    "time-grunt": "~0.4.0"
   },
   "scripts": {
     "postinstall": "bower --quiet --allow-root install --production --interactive=false && npm run build",

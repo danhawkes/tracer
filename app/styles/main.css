@@ -1,3 +1,4 @@
 html {
   font-family: 'RobotoDraft', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }

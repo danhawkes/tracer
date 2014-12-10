@@ -1,0 +1,53 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="tracer-db" attributes="">
+  <script src="../../bower_components/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="../tracer.js"></script>
+  <script>
+    Polymer({
+      created: function() {
+        this.db = new PouchDB('locations');
+        this.remoteDb = new PouchDB('https://ttookedgaimplithenturedi:ywUb2kx3jnA40Yp6rou5Xyc5@arcs.cloudant.com/tracer', {
+          ajax: {
+            cache: true
+          }
+        });
+
+        PouchDB.sync(this.db, this.remoteDb, {
+          live: true
+        }).on('change', function(info) {
+          if (info.direction === 'pull') {
+            console.log('PouchDB remote modified');
+          } else {
+            console.log('PouchDB local modified');
+          }
+        }).on('uptodate', function(info) {
+          console.log('PouchDB remote is up-to-date');
+        }).on('error', function(err) {
+          console.log('PouchDB error while updating:');
+          console.log(err);
+        });
+      },
+
+      saveTrace: function(trace, id) {
+        this.db.put(trace.toDb(id)).catch(function(err) {
+          console.log(err);
+        });
+      },
+
+      deleteTrace: function(id) {
+        this.db.remove(id).catch(function(err) {
+          console.log(err);
+        });
+      },
+
+      listTraces: function() {
+        return this.db.allDocs();
+      },
+
+      loadTrace: function(id) {
+        return this.db.get(id);
+      }
+    });
+  </script>
+</polymer-element>

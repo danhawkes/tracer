@@ -1,22 +1,44 @@
 #toolbar-container {
   z-index: 1;
 }
-core-toolbar {
-  background: #fff600;
+
+core-scaffold::shadow core-toolbar {
+  background-color: #fff600;
 }
-paper-fab {
-  background: #fff600;
-  margin: 32px;
-  color: black;
+
+#drawerToolbar {
+  background-color: #8c8c8c;
 }
+
+#mainToolbar {
+  background-color: #fff600;
+}
+
+#drawerPanel core-header-panel {
+  background-color: white;
+}
+
+#drawer-panel {
+  height: 100%;
+}
+
+#menu {
+  margin: 0;
+}
+
 #container {
   height: 100%;
 }
-#fab {
+
+#action-buttons {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: 40px;
+  right: 16px;
 }
-#menubuttonalignfix {
-  height: 40px;
+
+#action-buttons paper-fab {
+  background: #fff600;
+  margin-bottom: 16px;
+  color: black;
 }
+

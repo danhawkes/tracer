@@ -1,0 +1,121 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="tracer-location">
+
+  <script src="../tracer.js"></script>
+  <script src="mocks.js"></script>
+  <script src="../../bower_components/pouchdb/dist/pouchdb.min.js"></script>
+
+  <script>
+    Polymer({
+
+      publish: {
+
+        /**
+         * The last known position of the user, or null if no position has ever been seen.
+         * @attribute current
+         * @type TR.Position
+         * @default null
+         */
+        position: null,
+
+        /**
+         * Set to true to track changes in the user's location. Setting this attribute is equivalent to calling `startOngoing` and `stopOngoing`.
+         * @attribute watch
+         * @type boolean
+         * @default false
+         */
+        watch: false
+
+        /**
+         * Fired when a new position is available.
+         * @event position
+         */
+
+        /**
+         * Fired when a requested location update is taking longer than expected.
+         * @event slowlock
+         */
+      },
+
+      created: function() {
+
+        this.slowLockTimeoutId = 0;
+        this.locationWatchId = 0;
+        this.locationOptions = {
+          oneOff: {
+            enableHighAccuracy: true,
+            timeout: 1000 * 120,
+            maximumAge: 0
+          },
+          ongoing: {
+            enableHighAccuracy: true,
+            timeout: 1000 * 120,
+            maximumAge: 0
+          }
+        };
+
+        // this.geolocation = new Mocks.geolocation();
+        this.geolocation = window.navigator.geolocation;
+      },
+
+      watchChanged: function(oldValue, newValue) {
+        if (newValue) {
+          this.startOngoing();
+        } else {
+          this.stopOngoing();
+        }
+      },
+
+      /**
+       * Request a single location update.
+       * @method oneShot
+       */
+      oneShot: function() {
+        this.scheduleLocationTakingLongTimeEvent();
+        this.geolocation.getCurrentPosition(this.onNewPosition.bind(this), this.onPositionError.bind(this), this.locationOptions.oneOff);
+      },
+
+      /**
+       * Request ongoing location updates until `stopOngoing` is called.
+       * @method startOngoing
+       */
+      startOngoing: function() {
+        this.scheduleLocationTakingLongTimeEvent();
+        this.locationWatchId = this.geolocation.watchPosition(this.onNewPosition.bind(this), this.onPositionError.bind(this), this.locationOptions.ongoing);
+      },
+
+      /**
+       * Stop receiving location updates that were initiated by `startOngoing`.
+       * @method stopOngoing
+       */
+      stopOngoing: function() {
+        this.cancelLocationTakingLongTimeEvent();
+        this.geolocation.clearWatch(this.locationWatchId);
+      },
+
+      onNewPosition: function(geoPos) {
+        this.cancelLocationTakingLongTimeEvent();
+        this.position = new TR.Position(geoPos.coords.latitude, geoPos.coords.longitude);
+        this.fire('position', this.position);
+      },
+
+      onPositionError: function(error) {
+        console.log(error);
+      },
+
+      scheduleLocationTakingLongTimeEvent: function() {
+        this.slowLockTimeoutId = setTimeout(function() {
+          this.fire('slowlock');
+        }.bind(this), 1000 * 5);
+      },
+
+      cancelLocationTakingLongTimeEvent: function() {
+        if (this.slowLockTimeoutId != 0) {
+          clearTimeout(this.slowLockTimeoutId);
+          this.slowLockTimeoutId = 0;
+        }
+      }
+    });
+  </script>
+</polymer-element>

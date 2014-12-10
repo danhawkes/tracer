@@ -1,0 +1,21 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+
+<polymer-element name="tracer-menuitem" extends="paper-item">
+  <template>
+    <link rel="stylesheet" href="tracer-menuitem.css">
+    <paper-item>
+      <core-icon class="menu-icon" icon="{{icon}}"></core-icon>
+      {{label}}
+    </paper-item>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        icon: null,
+        label: ''
+      }
+    });
+  </script>
+</polymer-element>
