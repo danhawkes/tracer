@@ -26,7 +26,7 @@
         publish: {
 
           /**
-           * Point at which to draw a dot indicating the current location.
+           * Point at which to draw a dot to indicate the current position.
            * @attribute
            * @type Object
            * @default null
@@ -42,13 +42,22 @@
           path: [],
 
           /**
-           * Whether to move the map to keep the current position in the centre. This attribute is automatically set to
-           * false when the user scrolls or zooms the map away from the current position.
+           * Whether to move/zoom the map to keep the current position marker in the centre. This attribute is
+           * automatically set to false when the user scrolls or zooms the map away from the current position.
            * @attribute
            * @type boolean
            * @default false
            */
-          follow: false
+          follow: false,
+
+          /**
+           * Whether to move and zoom the map to keep the entire path in-view. This attribute is automatically
+           * set to false when the user scrolls or zooms the map away from the current position.
+           * @attribute
+           * @type boolean
+           * @default false
+           */
+          showPath: false
         },
 
         created: function() {
@@ -56,7 +65,7 @@
           this.pathLine = null;
           this.pathLayer = null;
           this.markerLayer = null;
-          this.ignoreZoomStart = false;
+          this.ignoreEvents = false;
         },
 
         domReady: function() {
@@ -74,36 +83,24 @@
           });
 
           this.map.on('zoomstart', function(event) {
-            if (this.ignoreZoomStart) {
-              this.ignoreZoomStart = false;
-            } else {
+            if (!this.ignoreEvents) {
               this.follow = false;
-            }
+              this.showPath = false;
+             }
           }.bind(this));
 
           this.map.on('dragstart', function(event) {
-            this.follow = false;
+            if (!this.ignoreEvents) {
+               this.follow = false;
+              this.showPath = false;
+             }
           }.bind(this));
-        },
-
-        /**
-         * Moves the map to show the entire path, if there is one.
-         * @method
-         */
-        showPath: function() {
-          if (this.path && this.path.length > 0) {
-            this.follow = false;
-            this.marker = null;
-            this.setMapToShowPath();
-          }
         },
 
         markerChanged: function(oldPos, newPos) {
           this.updateDisplayedMarker(newPos);
-          if (newPos) {
-            if (this.follow) {
-              this.setMapToCurrentPosition();
-            }
+          if (newPos && this.follow) {
+            this.setMapToCurrentPosition();
           }
         },
 
@@ -113,14 +110,21 @@
           // to ensure the mutation has finished.
           setTimeout(function() {
             this.updateDisplayedPath(this.path);
+            if (this.showPath) {
+              this.setMapToShowPath();
+            }
           }.bind(this), 10);
         },
 
         followChanged: function(oldValue, newValue) {
-          if (newValue) {
-            if (this.marker) {
-              this.setMapToCurrentPosition();
-            }
+          if (newValue && this.marker) {
+            this.setMapToCurrentPosition();
+          }
+        },
+
+        showPathChanged: function(oldValue, newValue) {
+          if (newValue && this.path && this.path.length > 0) {
+            this.setMapToShowPath();
           }
         },
 
@@ -153,15 +157,24 @@
         },
 
         setMapToCurrentPosition: function() {
-          var zoom = 16;
-          this.ignoreZoomStart = this.map.getZoom() !== zoom;
-          this.map.setView(L.latLng(this.marker.lat, this.marker.lng), zoom, {
+          this.ignoreEventsForTimeout();
+          this.map.setView(L.latLng(this.marker.lat, this.marker.lng), 16, {
             animate: true
           });
         },
 
         setMapToShowPath: function() {
-          this.map.fitBounds(this.pathLine.getBounds());
+          if (this.pathLine) {
+            this.ignoreEventsForTimeout();
+            this.map.fitBounds(this.pathLine.getBounds());
+          }
+        },
+
+        ignoreEventsForTimeout: function() {
+          this.ignoreEvents = true;
+          setTimeout(function(){
+             this.ignoreEvents = false;
+          }.bind(this), 500);
         }
       });
     })

@@ -21,11 +21,11 @@
 
         /**
          * Set to true to track changes in the user's location. Setting this attribute is equivalent to calling `startOngoing` and `stopOngoing`.
-         * @attribute watch
+         * @attribute ongoing
          * @type boolean
          * @default false
          */
-        watch: false
+        ongoing: false
 
         /**
          * Fired when a new position is available.
@@ -59,7 +59,7 @@
         this.geolocation = window.navigator.geolocation;
       },
 
-      watchChanged: function(oldValue, newValue) {
+      ongoingChanged: function(oldValue, newValue) {
         if (newValue) {
           this.startOngoing();
         } else {
