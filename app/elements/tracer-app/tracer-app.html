@@ -197,7 +197,6 @@
         },
 
         updateInstallButtonVisibility: function() {
-          this.menuItems = this.menuItems;
           if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
             var request = navigator.mozApps.checkInstalled(this.manifestUrl)
             request.onsuccess = function(e) {
