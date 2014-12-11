@@ -1,0 +1,26 @@
+{
+  "launch_path": "/index.html",
+  "icons": {
+    "128": "/images/icon-128.png",
+    "512": "/images/icon-512.png"
+  },
+  "app": {
+    "urls": [
+      "*://tracer.fractalsands.com/"
+    ]
+  },
+  "launch": {
+    "web_url": "http://tracer.fractalsands.com"
+  },
+  "permissions": [
+    "geolocation"
+  ],
+  "type": "web",
+  "name": "Tracer",
+  "description": "Record where you've been, and upload tracks to other services.",
+  "version": "0.1.0",
+  "manifest_version": 2,
+  "developer": {
+    "name": "Dan Hawkes"
+  }
+}
