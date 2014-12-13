@@ -104,8 +104,8 @@
           this.menuItems = [
             {name: 'Map', icon: 'maps:map'}
           ];
-          this.manifestUrl = location.href + 'manifest.webapp';
-          this.manifestPackageUrl = location.href + 'packaged/mini-manifest.webapp';
+          this.manifestUrl = location.origin + '/manifest.webapp';
+          this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
           this.installable = false;
           this.db = document.createElement('tracer-db');
           this.trace = null;
