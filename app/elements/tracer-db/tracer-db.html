@@ -14,7 +14,7 @@
         });
 
         PouchDB.sync(this.db, this.remoteDb, {
-          live: true
+          live: false
         }).on('change', function(info) {
           if (info.direction === 'pull') {
             console.log('PouchDB remote modified');
