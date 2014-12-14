@@ -1,0 +1,64 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+
+<polymer-element name="tracer-traceslistpage">
+
+  <template>
+    <link rel="stylesheet" href="tracer-traceslistpage.css">
+
+    <div layout fit>
+
+      <paper-shadow class="card" self-center>
+        <tracer-map id="map" path="{{path}}"></tracer-map>
+      </paper-shadow>
+
+      <paper-shadow class="card" id="list" self-center>
+        <template repeat="{{item, index in items}}">
+          <paper-item data-value="{{index}}" on-tap="{{onItemTap}}">
+            {{item.id | timestampToDate}}
+          </paper-item>
+        </template>
+      </paper-shadow>
+
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      publish: {
+        db: null
+      },
+
+      ready: function() {
+        if (this.db) {
+          this.updateList();
+        }
+      },
+
+      updateList: function() {
+        this.db.listTraces().then(function(doc) {
+          this.items = doc.rows;
+        }.bind(this)).catch(function(err) {
+          console.print('error while listing traces:');
+          console.print(err);
+        });
+      },
+
+      timestampToDate: function(timestamp) {
+        return new Date(Number(timestamp)).toUTCString();
+      },
+
+      onItemTap: function(e, detail, sender) {
+        var index = sender.dataset.value;
+        var traceId = this.items[index].id;
+        this.db.loadTrace(traceId).then(function(doc) {
+          this.$.map.path = doc.positions;
+          this.$.map.showPath = true;
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
+      }
+    });
+  </script>
+</polymer-element>

@@ -85,6 +85,7 @@
         this.super();
         this.db.listTraces().then(function(doc) {
           this.items = doc.rows;
+          this.updateTargetDimensions();
         }.bind(this)).catch(function(err) {
           console.print('error while listing traces:')
           console.print(err);

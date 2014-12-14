@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="tracer-map.css">
     <link rel="stylesheet" href="../../bower_components/leaflet/dist/leaflet.css">
 
-    <div id="map" fit></div>
+    <div id="map"></div>
 
   </template>
 
@@ -86,15 +86,19 @@
             if (!this.ignoreEvents) {
               this.follow = false;
               this.showPath = false;
-             }
+            }
           }.bind(this));
 
           this.map.on('dragstart', function(event) {
             if (!this.ignoreEvents) {
-               this.follow = false;
+              this.follow = false;
               this.showPath = false;
-             }
+            }
           }.bind(this));
+        },
+
+        updateSize: function() {
+          this.map.invalidateSize();
         },
 
         markerChanged: function(oldPos, newPos) {
@@ -172,8 +176,8 @@
 
         ignoreEventsForTimeout: function() {
           this.ignoreEvents = true;
-          setTimeout(function(){
-             this.ignoreEvents = false;
+          setTimeout(function() {
+            this.ignoreEvents = false;
           }.bind(this), 500);
         }
       });

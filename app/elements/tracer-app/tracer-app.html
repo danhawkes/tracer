@@ -10,6 +10,8 @@
 <link rel="import" href="../../bower_components/core-menu/core-menu.html">
 <link rel="import" href="../../bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="../../bower_components/core-item/core-item.html">
+<link rel="import" href="../../bower_components/core-list/core-list.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
@@ -31,17 +33,33 @@
                      on-slowlock="{{showWaitingForLocationToast}}"
                      on-position="{{onNewLocation}}"></tracer-location>
 
+    <tracer-tracesdialog id="tracesDialog" db="{{db}}" on-trace-select="{{showTrace}}"></tracer-tracesdialog>
+    <paper-action-dialog id="aboutDialog" heading="About" transition="core-transition-center">
+      <p>
+        Built with
+        <a href="https://www.polymer-project.org">Polymer</a>,
+        <a href="http://leafletjs.com/">Leaflet.js</a> and
+        <a href="https://www.mapbox.com">Mapbox</a>.
+      </p>
+
+      <p>
+        Contribute on <a href="https://github.com/danhawkes/tracer">Github</a>.
+      </p>
+      <paper-button affirmative>OK</paper-button>
+    </paper-action-dialog>
+    <paper-toast id="waitingForLocationToast" text="Waiting for location…"></paper-toast>
+    <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
+
+
     <core-drawer-panel id="drawerPanel" narrow="{{narrow}}">
 
       <core-header-panel drawer mode="seamed">
-        <core-toolbar id="drawerToolbar"></core-toolbar>
-        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
+        <core-toolbar id="drawerToolbar"><div hidden?="{{narrow}}">Tracer</div></core-toolbar>
+        <core-menu id="menu" selectedAttribute="" selected="1" on-core-select="{{onMenuItemSelected}}">
           <template repeat="{{menuItems}}">
-            <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
+            <tracer-menuitem icon="{{icon}}" label="{{name}}" data-page="{{pageId}}"></tracer-menuitem>
           </template>
         </core-menu>
-        <tracer-menuitem icon="polymer" label="My Traces"
-                         on-click="{{showTracesDialog}}"></tracer-menuitem>
         <tracer-menuitem icon="cloud-download" label="Install" on-click="{{installApp}}"
                          hidden?="{{!installable}}"></tracer-menuitem>
         <tracer-menuitem icon="info" label="About" on-click="{{showAboutDialog}}"></tracer-menuitem>
@@ -51,37 +69,27 @@
 
         <core-toolbar id="mainToolbar">
           <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-click="{{toggleDrawer}}"></paper-icon-button>
-          <div>Tracer</div>
+          <div hidden?="{{!narrow}}">Tracer</div>
         </core-toolbar>
 
-        <tracer-map id="map" fit></tracer-map>
+        <core-animated-pages id="pages" selected="{{page}}"
+                             transitions="hero-transition"
+                             on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
 
-        <div id="action-buttons" layout vertical>
-          <paper-fab id="fab-startstop" icon="maps:my-location" on-click="{{showLocation}}"></paper-fab>
-          <paper-fab id="fab-locate" icon="{{recording ? 'av:stop' : 'av:play-arrow'}}"
-                     on-click="{{toggleRecording}}"></paper-fab>
-        </div>
+          <section id="mapPage">
+            <tracer-map id="map" fit hero hero-id="map"></tracer-map>
+            <div id="action-buttons" layout vertical>
+              <paper-fab id="fab-startstop" icon="maps:my-location" on-click="{{showLocation}}"></paper-fab>
+              <paper-fab id="fab-locate" icon="{{recording ? 'av:stop' : 'av:play-arrow'}}"
+                         on-click="{{toggleRecording}}"></paper-fab>
+            </div>
+          </section>
 
-        <paper-action-dialog id="aboutDialog" heading="About" transition="core-transition-center">
-          <p>
-            Built with
-            <a href="https://www.polymer-project.org">Polymer</a>,
-            <a href="http://leafletjs.com/">Leaflet.js</a> and
-            <a href="https://www.mapbox.com">Mapbox</a>.
-          </p>
-
-          <p>
-            Contribute on <a href="https://github.com/danhawkes/tracer">Github</a>.
-          </p>
-          <paper-button affirmative>OK</paper-button>
-        </paper-action-dialog>
-
-        <tracer-tracesdialog id="tracesDialog" db="{{db}}" on-trace-select="{{showTrace}}"></tracer-tracesdialog>
-
-        <paper-toast id="waitingForLocationToast" text="Waiting for location…"></paper-toast>
-        <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
-
-
+          <section id="tracesListPage">
+            <tracer-traceslistpage fit hero hero-id="list" db="{{db}}"
+                                   on-trace-select="{{showTrace}}"></tracer-traceslistpage>
+          </section>
+        </core-animated-pages>
       </core-header-panel>
     </core-drawer-panel>
 
@@ -98,11 +106,12 @@
         computed: {
           idle: 'state === "idle"',
           recording: 'state === "recording"',
-          showingTrace: 'state == "showingTrace"'
+          showingTrace: 'state === "showingTrace"'
         },
         created: function() {
           this.menuItems = [
-            {name: 'Map', icon: 'maps:map'}
+            {name: 'Map', icon: 'maps:map', pageId: 0},
+            {name: 'My Traces', icon: 'polymer', pageId: 1}
           ];
           this.manifestUrl = location.origin + '/manifest.webapp';
           this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
@@ -111,20 +120,23 @@
           this.trace = null;
           this.state = IDLE;
 
+          this.listdata = [
+            {name: 'Bob', checked: true},
+            {name: 'Tim', checked: false}
+          ];
+
+
           console.log(this.manifestUrl);
           console.log(this.manifestPackageUrl);
-
-          // UI hacks
-          this.menuLastSelected = 0;
 
           this.updateInstallButtonVisibility();
         },
 
         onMenuItemSelected: function(e, detail) {
           if (detail.isSelected) {
-            var id = detail.item.id;
+            this.page = detail.item.dataset.page;
+            this.$.drawerPanel.closeDrawer();
           }
-          this.$.drawerPanel.closeDrawer();
         },
 
         showAboutDialog: function() {
@@ -152,7 +164,6 @@
           this.$.drawerPanel.closeDrawer();
           var asPackage = false;
           var apps = navigator.mozApps;
-          alert('installing');
           var installLocFind = asPackage ? apps.installPackage(this.packageManifestUrl) : apps.install(this.manifestUrl);
           installLocFind.onsuccess = function(data) {
             this.installable = false;
@@ -203,9 +214,7 @@
           if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
             var request = navigator.mozApps.checkInstalled(this.manifestUrl)
             request.onsuccess = function(e) {
-              if (!request.result) {
-                this.installable = true;
-              }
+              this.installable = !request.result;
             }.bind(this);
             request.onerror = function(e) {
               alert(e);
@@ -220,7 +229,12 @@
             this.trace.appendPosition(position);
             this.$.map.path = this.trace.positions;
           }
+        },
+
+        onAnimatedPagePrepare: function() {
+          this.$.map.updateSize();
         }
+
       });
     })();
   </script>

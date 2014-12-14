@@ -1,5 +1,4 @@
 #toolbar-container {
-  z-index: 1;
 }
 
 core-scaffold::shadow core-toolbar {
@@ -7,7 +6,7 @@ core-scaffold::shadow core-toolbar {
 }
 
 #drawerToolbar {
-  background-color: #8c8c8c;
+  background-color: #fff600;
 }
 
 #mainToolbar {
@@ -20,6 +19,7 @@ core-scaffold::shadow core-toolbar {
 
 #drawer-panel {
   height: 100%;
+  z-index: 100000;
 }
 
 #menu {
@@ -42,3 +42,7 @@ core-scaffold::shadow core-toolbar {
   color: black;
 }
 
+#pages {
+  z-index: 0;
+  background-color: #f0f0f0;
+}

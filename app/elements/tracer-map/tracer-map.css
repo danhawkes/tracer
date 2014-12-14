@@ -1,8 +1,14 @@
-#map {
-  background: #ccc;
-}
-.center-icon {
+:host .center-icon {
   border-radius: 6px;
   background: #fff600;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+:host {
+  display: block;
+}
+
+:host #map {
+  height: 100%;
+  width: 100%
 }
