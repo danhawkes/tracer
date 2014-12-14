@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 
 <polymer-element name="tracer-traceslistpage">
 
@@ -34,6 +35,10 @@
         if (this.db) {
           this.updateList();
         }
+      },
+
+      updateSize: function() {
+        this.$.map.updateSize();
       },
 
       updateList: function() {

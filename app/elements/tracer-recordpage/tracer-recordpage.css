@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+#action-buttons {
+  position: absolute;
+  bottom: 40px;
+  right: 16px;
+}
+
+#action-buttons paper-fab {
+  background: #fff600;
+  margin-bottom: 16px;
+  color: black;
+}

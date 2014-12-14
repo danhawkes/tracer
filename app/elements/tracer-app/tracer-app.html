@@ -5,20 +5,17 @@
 <link rel="import" href="../../bower_components/core-transition/core-transition.html">
 <link rel="import" href="../../bower_components/core-icons/core-icons.html">
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
-<link rel="import" href="../../bower_components/core-icons/maps-icons.html">
 <link rel="import" href="../../bower_components/core-icons/av-icons.html">
 <link rel="import" href="../../bower_components/core-menu/core-menu.html">
 <link rel="import" href="../../bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="../../bower_components/core-item/core-item.html">
 <link rel="import" href="../../bower_components/core-list/core-list.html">
 <link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
-<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
 <link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
-<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
@@ -28,10 +25,6 @@
 
   <template>
     <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
-
-    <tracer-location id="location" enabled="{{state === RECORDING}}"
-                     on-slowlock="{{showWaitingForLocationToast}}"
-                     on-position="{{onNewLocation}}"></tracer-location>
 
     <tracer-tracesdialog id="tracesDialog" db="{{db}}" on-trace-select="{{showTrace}}"></tracer-tracesdialog>
     <paper-action-dialog id="aboutDialog" heading="About" transition="core-transition-center">
@@ -47,15 +40,16 @@
       </p>
       <paper-button affirmative>OK</paper-button>
     </paper-action-dialog>
-    <paper-toast id="waitingForLocationToast" text="Waiting for location…"></paper-toast>
     <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
 
 
     <core-drawer-panel id="drawerPanel" narrow="{{narrow}}">
 
       <core-header-panel drawer mode="seamed">
-        <core-toolbar id="drawerToolbar"><div hidden?="{{narrow}}">Tracer</div></core-toolbar>
-        <core-menu id="menu" selectedAttribute="" selected="1" on-core-select="{{onMenuItemSelected}}">
+        <core-toolbar id="drawerToolbar">
+          <div hidden?="{{narrow}}">Tracer</div>
+        </core-toolbar>
+        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
           <template repeat="{{menuItems}}">
             <tracer-menuitem icon="{{icon}}" label="{{name}}" data-page="{{pageId}}"></tracer-menuitem>
           </template>
@@ -73,21 +67,13 @@
         </core-toolbar>
 
         <core-animated-pages id="pages" selected="{{page}}"
-                             transitions="hero-transition"
+                             transitions="hero-transition cross-fade"
                              on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
-
           <section id="mapPage">
-            <tracer-map id="map" fit hero hero-id="map"></tracer-map>
-            <div id="action-buttons" layout vertical>
-              <paper-fab id="fab-startstop" icon="maps:my-location" on-click="{{showLocation}}"></paper-fab>
-              <paper-fab id="fab-locate" icon="{{recording ? 'av:stop' : 'av:play-arrow'}}"
-                         on-click="{{toggleRecording}}"></paper-fab>
-            </div>
+            <tracer-recordpage sizeable fit cross-fade db="{{db}}"></tracer-recordpage>
           </section>
-
           <section id="tracesListPage">
-            <tracer-traceslistpage fit hero hero-id="list" db="{{db}}"
-                                   on-trace-select="{{showTrace}}"></tracer-traceslistpage>
+            <tracer-traceslistpage sizeable fit cross-fade db="{{db}}"></tracer-traceslistpage>
           </section>
         </core-animated-pages>
       </core-header-panel>
@@ -96,146 +82,67 @@
   </template>
 
   <script>
-    (function() {
+    Polymer({
+      created: function() {
+        this.menuItems = [
+          {name: 'Map', icon: 'maps:map', pageId: 0},
+          {name: 'My Traces', icon: 'polymer', pageId: 1}
+        ];
+        this.manifestUrl = location.origin + '/manifest.webapp';
+        this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
+        this.installable = false;
+        this.db = document.createElement('tracer-db');
 
-      var IDLE = 'idle';
-      var RECORDING = 'recording';
-      var SHOWING_TRACE = 'showingTrace';
+        this.updateInstallButtonVisibility();
+      },
 
-      Polymer({
-        computed: {
-          idle: 'state === "idle"',
-          recording: 'state === "recording"',
-          showingTrace: 'state === "showingTrace"'
-        },
-        created: function() {
-          this.menuItems = [
-            {name: 'Map', icon: 'maps:map', pageId: 0},
-            {name: 'My Traces', icon: 'polymer', pageId: 1}
-          ];
-          this.manifestUrl = location.origin + '/manifest.webapp';
-          this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
-          this.installable = false;
-          this.db = document.createElement('tracer-db');
-          this.trace = null;
-          this.state = IDLE;
-
-          this.listdata = [
-            {name: 'Bob', checked: true},
-            {name: 'Tim', checked: false}
-          ];
-
-
-          console.log(this.manifestUrl);
-          console.log(this.manifestPackageUrl);
-
-          this.updateInstallButtonVisibility();
-        },
-
-        onMenuItemSelected: function(e, detail) {
-          if (detail.isSelected) {
-            this.page = detail.item.dataset.page;
-            this.$.drawerPanel.closeDrawer();
-          }
-        },
-
-        showAboutDialog: function() {
+      onMenuItemSelected: function(e, detail) {
+        if (detail.isSelected) {
+          this.page = detail.item.dataset.page;
           this.$.drawerPanel.closeDrawer();
-          this.$.aboutDialog.opened = true;
-        },
-
-        showTracesDialog: function() {
-          this.$.drawerPanel.closeDrawer();
-          this.$.tracesDialog.opened = true;
-        },
-
-        showTrace: function(e) {
-          var traceId = e.detail;
-          this.db.loadTrace(traceId).then(function(doc) {
-            this.$.map.path = doc.positions;
-            this.$.map.showPath = true;
-            this.state = SHOWING_TRACE;
-          }.bind(this)).catch(function(e) {
-            console.log(e);
-          });
-        },
-
-        installApp: function() {
-          this.$.drawerPanel.closeDrawer();
-          var asPackage = false;
-          var apps = navigator.mozApps;
-          var installLocFind = asPackage ? apps.installPackage(this.packageManifestUrl) : apps.install(this.manifestUrl);
-          installLocFind.onsuccess = function(data) {
-            this.installable = false;
-          }.bind(this);
-          installLocFind.onerror = function() {
-            alert(installLocFind.error.name);
-          };
-        },
-
-        toggleRecording: function() {
-          if (this.idle || this.showingTrace) {
-            if (this.showingTrace) {
-              this.$.map.path = null;
-            }
-            this.trace = new TR.Trace();
-            this.$.location.ongoing = true;
-            this.$.map.follow = true;
-            this.state = RECORDING;
-          } else if (this.recording) {
-            this.$.location.ongoing = false;
-            if (this.trace.positions.length > 0) {
-              this.db.saveTrace(this.trace, Date.now() + '');
-            }
-            this.trace = null;
-            this.state = IDLE;
-          }
-        },
-
-        showLocation: function() {
-          this.$.map.follow = true;
-          if (this.idle || this.showingTrace) {
-            this.$.location.oneShot();
-            if (this.showingTrace) {
-              this.$.map.path = null;
-            }
-          }
-        },
-
-        showWaitingForLocationToast: function() {
-          this.$.waitingForLocationToast.show();
-        },
-
-        toggleDrawer: function() {
-          this.$.drawerPanel.togglePanel();
-        },
-
-        updateInstallButtonVisibility: function() {
-          if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
-            var request = navigator.mozApps.checkInstalled(this.manifestUrl)
-            request.onsuccess = function(e) {
-              this.installable = !request.result;
-            }.bind(this);
-            request.onerror = function(e) {
-              alert(e);
-            }.bind(this);
-          }
-        },
-
-        onNewLocation: function(event) {
-          var position = event.detail;
-          this.$.map.marker = position;
-          if (this.recording) {
-            this.trace.appendPosition(position);
-            this.$.map.path = this.trace.positions;
-          }
-        },
-
-        onAnimatedPagePrepare: function() {
-          this.$.map.updateSize();
         }
+      },
 
-      });
-    })();
+      onAnimatedPagePrepare: function(e, detail) {
+        var sizeableElem = this.$.pages.selectedItem.querySelector('[sizeable]');
+        if (sizeableElem) {
+          sizeableElem.updateSize();
+        }
+      },
+
+      showAboutDialog: function() {
+        this.$.drawerPanel.closeDrawer();
+        this.$.aboutDialog.opened = true;
+      },
+
+      installApp: function() {
+        this.$.drawerPanel.closeDrawer();
+        var asPackage = false;
+        var apps = navigator.mozApps;
+        var installLocFind = asPackage ? apps.installPackage(this.packageManifestUrl) : apps.install(this.manifestUrl);
+        installLocFind.onsuccess = function(data) {
+          this.installable = false;
+        }.bind(this);
+        installLocFind.onerror = function() {
+          alert(installLocFind.error.name);
+        };
+      },
+
+      toggleDrawer: function() {
+        this.$.drawerPanel.togglePanel();
+      },
+
+      updateInstallButtonVisibility: function() {
+        if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
+          var request = navigator.mozApps.checkInstalled(this.manifestUrl)
+          request.onsuccess = function(e) {
+            this.installable = !request.result;
+          }.bind(this);
+          request.onerror = function(e) {
+            alert(e);
+          }.bind(this);
+        }
+      },
+    });
   </script>
 </polymer-element>

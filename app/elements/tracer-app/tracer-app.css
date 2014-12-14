@@ -30,19 +30,6 @@ core-scaffold::shadow core-toolbar {
   height: 100%;
 }
 
-#action-buttons {
-  position: absolute;
-  bottom: 40px;
-  right: 16px;
-}
-
-#action-buttons paper-fab {
-  background: #fff600;
-  margin-bottom: 16px;
-  color: black;
-}
-
 #pages {
-  z-index: 0;
   background-color: #f0f0f0;
 }

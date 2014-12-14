@@ -15,7 +15,5 @@ width:auto;
 }
 
 :host #list {
-  height: 50px;
   padding: 32px;
-  overflow-y: auto;
 }
