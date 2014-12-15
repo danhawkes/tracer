@@ -7,13 +7,13 @@
   <template>
     <link rel="stylesheet" href="tracer-traceslistpage.css">
 
-    <div layout fit>
+    <div id="content" layout vertical fit>
 
-      <paper-shadow class="card" self-center>
-        <tracer-map id="map" path="{{path}}"></tracer-map>
+      <paper-shadow id="mapContainer" class="card">
+        <tracer-map id="map" fit path="{{path}}"></tracer-map>
       </paper-shadow>
 
-      <paper-shadow class="card" id="list" self-center>
+      <paper-shadow id="listContainer" class="card">
         <template repeat="{{item, index in items}}">
           <paper-item data-value="{{index}}" on-tap="{{onItemTap}}">
             {{item.id | timestampToDate}}

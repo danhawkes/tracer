@@ -43,15 +43,14 @@
     <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
 
 
-    <core-drawer-panel id="drawerPanel" narrow="{{narrow}}">
-
-      <core-header-panel drawer mode="seamed">
+    <core-drawer-panel id="drawer" narrow="{{narrow}}">
+      <core-header-panel id="drawerPanel" drawer mode="seamed">
         <core-toolbar id="drawerToolbar">
           <div hidden?="{{narrow}}">Tracer</div>
         </core-toolbar>
-        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
+        <core-menu id="menu" selectedAttribute="" selected="1" on-core-select="{{onMenuItemSelected}}">
           <template repeat="{{menuItems}}">
-            <tracer-menuitem icon="{{icon}}" label="{{name}}" data-page="{{pageId}}"></tracer-menuitem>
+            <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
           </template>
         </core-menu>
         <tracer-menuitem icon="cloud-download" label="Install" on-click="{{installApp}}"
@@ -59,14 +58,12 @@
         <tracer-menuitem icon="info" label="About" on-click="{{showAboutDialog}}"></tracer-menuitem>
       </core-header-panel>
 
-      <core-header-panel main>
-
+      <core-header-panel main id="mainPanel">
         <core-toolbar id="mainToolbar">
           <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-click="{{toggleDrawer}}"></paper-icon-button>
-          <div hidden?="{{!narrow}}">Tracer</div>
+          <div hidden?="{{!narrow}}">{{pageTitle}}</div>
         </core-toolbar>
-
-        <core-animated-pages id="pages" selected="{{page}}"
+        <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
                              transitions="hero-transition cross-fade"
                              on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
           <section id="mapPage">
@@ -85,21 +82,23 @@
     Polymer({
       created: function() {
         this.menuItems = [
-          {name: 'Map', icon: 'maps:map', pageId: 0},
-          {name: 'My Traces', icon: 'polymer', pageId: 1}
+          {name: 'Map', pageTitle: 'Tracer', icon: 'maps:map'},
+          {name: 'My Traces', pageTitle: 'My Traces', icon: 'polymer'}
         ];
         this.manifestUrl = location.origin + '/manifest.webapp';
         this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
         this.installable = false;
         this.db = document.createElement('tracer-db');
 
+        this.pageTitle = this.menuItems[0].pageTitle;
         this.updateInstallButtonVisibility();
       },
 
       onMenuItemSelected: function(e, detail) {
         if (detail.isSelected) {
-          this.page = detail.item.dataset.page;
-          this.$.drawerPanel.closeDrawer();
+          this.selectedPageIndex = this.$.menu.selected;
+          this.pageTitle = this.menuItems[this.selectedPageIndex].pageTitle;
+          this.$.drawer.closeDrawer();
         }
       },
 
@@ -111,12 +110,12 @@
       },
 
       showAboutDialog: function() {
-        this.$.drawerPanel.closeDrawer();
+        this.$.drawer.closeDrawer();
         this.$.aboutDialog.opened = true;
       },
 
       installApp: function() {
-        this.$.drawerPanel.closeDrawer();
+        this.$.drawer.closeDrawer();
         var asPackage = false;
         var apps = navigator.mozApps;
         var installLocFind = asPackage ? apps.installPackage(this.packageManifestUrl) : apps.install(this.manifestUrl);
@@ -129,7 +128,7 @@
       },
 
       toggleDrawer: function() {
-        this.$.drawerPanel.togglePanel();
+        this.$.drawer.togglePanel();
       },
 
       updateInstallButtonVisibility: function() {
@@ -142,7 +141,7 @@
             alert(e);
           }.bind(this);
         }
-      },
+      }
     });
   </script>
 </polymer-element>
