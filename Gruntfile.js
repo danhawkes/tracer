@@ -265,7 +265,7 @@ module.exports = function(grunt) {
       dist: {
         options: {
           manifest: '<%= yeoman.dist %>/manifest.webapp'
-        },
+        }
       }
     },
     firefoxPackage: {
