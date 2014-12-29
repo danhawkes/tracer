@@ -44,7 +44,7 @@
       toggleRecording: function() {
         if (this.recording) {
           this.$.location.ongoing = false;
-          if (this.trace.positions.length >= 3) {
+          if (this.trace.positions.length >= 5) {
             this.db.saveTrace(this.trace, Date.now() + '');
           } else {
             this.$.willNotSaveTraceToast.show();

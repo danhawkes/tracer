@@ -5,7 +5,7 @@
 #action-buttons {
   position: absolute;
   bottom: 40px;
-  right: 16px;
+  right: 32px;
 }
 
 #action-buttons paper-fab {
