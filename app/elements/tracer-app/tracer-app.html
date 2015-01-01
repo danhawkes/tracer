@@ -19,6 +19,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 
 
 <polymer-element name="tracer-app" layout>
@@ -26,7 +27,9 @@
   <template>
     <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
 
-    <tracer-tracesdialog id="tracesDialog" db="{{db}}" on-trace-select="{{showTrace}}"></tracer-tracesdialog>
+    <tracer-db id="db" synchronising="{{synchronising}}" on-sync-complete="{{showSyncCompletedToast}}"
+               on-sync-error="{{showSyncErrorToast}}"></tracer-db>
+
     <paper-action-dialog id="aboutDialog" heading="About" transition="core-transition-center">
       <p>
         Built with
@@ -41,6 +44,9 @@
       <paper-button affirmative>OK</paper-button>
     </paper-action-dialog>
     <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
+    <paper-toast id="syncStartedToast" text="Synchronising…"></paper-toast>
+    <paper-toast id="syncCompletedToast" text="Traces are up to date."></paper-toast>
+    <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
 
 
     <core-drawer-panel id="drawer" narrow="{{narrow}}">
@@ -62,6 +68,9 @@
         <core-toolbar id="mainToolbar">
           <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-click="{{toggleDrawer}}"></paper-icon-button>
           <div hidden?="{{!narrow}}">{{pageTitle}}</div>
+          <div flex></div>
+          <paper-icon-button icon="refresh" hidden?="{{selectedPageIndex != 1}}"
+                             on-click="{{sync}}"></paper-icon-button>
         </core-toolbar>
         <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
                              transitions="hero-transition cross-fade"
@@ -88,10 +97,14 @@
         this.manifestUrl = location.origin + '/manifest.webapp';
         this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
         this.installable = false;
-        this.db = document.createElement('tracer-db');
 
         this.pageTitle = this.menuItems[0].pageTitle;
         this.updateInstallButtonVisibility();
+      },
+
+      ready: function() {
+        // Need to inject the db element into various other elements, so it's set as an attribute.
+        this.db = this.$.db;
       },
 
       onMenuItemSelected: function(e, detail) {
@@ -141,7 +154,22 @@
             alert(e);
           }.bind(this);
         }
+      },
+
+      sync: function() {
+        this.db.sync();
+        this.$.syncStartedToast.show();
+      },
+
+      showSyncCompletedToast: function() {
+        this.$.syncCompletedToast.show();
+      },
+
+      showSyncErrorToast: function() {
+        this.$.syncCompletedToast.show();
       }
+
+
     });
   </script>
 </polymer-element>

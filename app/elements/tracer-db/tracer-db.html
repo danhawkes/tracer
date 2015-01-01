@@ -5,6 +5,28 @@
   <script src="../tracer.js"></script>
   <script>
     Polymer({
+      publish: {
+
+        /**
+         * Whether a remote sync operation is in-progress.
+         * @attribute
+         * @type boolean
+         * @default false
+         */
+        synchronising: false
+
+
+        /**
+         * Fired when a synchronisation task completed successfully.
+         * @event sync-complete
+         */
+
+        /**
+         * Fired when a synchronisation task failed with an error.
+         * @event sync-error
+         */
+      },
+
       created: function() {
         this.db = new PouchDB('locations');
         this.remoteDb = new PouchDB('https://ttookedgaimplithenturedi:ywUb2kx3jnA40Yp6rou5Xyc5@arcs.cloudant.com/tracer', {
@@ -12,7 +34,10 @@
             cache: true
           }
         });
+      },
 
+      sync: function() {
+        this.synchronising = true;
         PouchDB.sync(this.db, this.remoteDb, {
           live: false
         }).on('change', function(info) {
@@ -23,10 +48,14 @@
           }
         }).on('uptodate', function(info) {
           console.log('PouchDB remote is up-to-date');
-        }).on('error', function(err) {
+          this.synchronising = false;
+          this.fire('sync-complete');
+        }.bind(this)).on('error', function(err) {
           console.log('PouchDB error while updating:');
           console.log(err);
-        });
+          this.fire('sync-error', err);
+          this.synchronising = false;
+        }.bind(this));
       },
 
       saveTrace: function(trace, id) {
