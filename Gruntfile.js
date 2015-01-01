@@ -321,8 +321,7 @@ module.exports = function(grunt) {
     'cssmin',
     'vulcanize',
     'usemin',
-    'minifyHtml',
-    'firefoxPackage:dist'
+    'minifyHtml'
   ]);
 
   grunt.registerTask('default', [
