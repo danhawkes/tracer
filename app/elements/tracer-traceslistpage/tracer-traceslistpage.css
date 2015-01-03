@@ -2,24 +2,23 @@
   display: block;
 }
 
-:host #content {
-  padding: 32px 16px 0 16px;
+#mapContainer {
+  height: 192px;
 }
 
-:host .card {
-  box-sizing: border-box;
-  background-color: white;
-  margin: 0 auto 32px auto;
-  width: 100%;
-  max-width: 800px;
+#listContainer {
+  padding: 32px 0;
+  overflow-y: scroll;
 }
 
-:host #mapContainer {
-  width: 100%;
-  height: 224px;
+#content {
+  background: white;
 }
 
-:host #listContainer {
-  padding: 16px;
+paper-fab {
+  position: absolute;
+  background: #fff600;
+  right: 16px;
+  bottom: 16px;
+  color: black;
 }
-

@@ -1,26 +1,31 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/core-selector/core-selector.html">
 
 <polymer-element name="tracer-traceslistpage">
 
   <template>
     <link rel="stylesheet" href="tracer-traceslistpage.css">
 
-    <div id="content" layout vertical flex>
+    <div id="content" layout vertical fit>
 
-      <paper-shadow id="mapContainer" class="card">
+      <paper-shadow id="mapContainer">
         <tracer-map id="map" fit path="{{path}}"></tracer-map>
+        <paper-fab id="fab-details" icon="info-outline" hidden?="{{selected == -1}}"
+                   on-click="{{showDetails}}"></paper-fab>
       </paper-shadow>
 
-      <paper-shadow id="listContainer" class="card">
-        <template repeat="{{item, index in items}}">
-          <paper-item data-value="{{index}}" on-tap="{{onItemTap}}">
+      <core-selector id="listContainer" flex selected="{{selected}}" selectedAttribute="">
+        <template repeat="{{item in items}}">
+          <paper-item on-hold="{{somethingheld}}">
             {{item.id | timestampToDate}}
           </paper-item>
-        </template>
-      </paper-shadow>
 
+        </template>
+      </core-selector>
     </div>
 
   </template>
@@ -29,20 +34,32 @@
     Polymer({
       publish: {
         db: null
+
+
+
       },
 
-      ready: function() {
-        if (this.db) {
-          this.updateList();
-        }
+      created: function() {
+        this.selected = 0;
       },
 
       dbChanged: function() {
         if (this.db) {
+          this.updateList();
           this.db.addEventListener('modified', function(e) {
-            console.log('a');
-          });
+            this.updateList();
+          }.bind(this));
         }
+      },
+
+      itemsChanged: function() {
+        if (this.items && this.items.length > this.selected) {
+          this.showTrace(this.items[this.selected].id);
+        }
+      },
+
+      selectedChanged: function(oldVal, newVal) {
+        this.showTrace(this.items[this.selected].id);
       },
 
       updateSize: function() {
@@ -58,19 +75,21 @@
         });
       },
 
-      timestampToDate: function(timestamp) {
-        return new Date(Number(timestamp)).toUTCString();
-      },
-
-      onItemTap: function(e, detail, sender) {
-        var index = sender.dataset.value;
-        var traceId = this.items[index].id;
+      showTrace: function(traceId) {
         this.db.loadTrace(traceId).then(function(doc) {
           this.$.map.path = doc.positions;
           this.$.map.showPath = true;
         }.bind(this)).catch(function(e) {
           console.log(e);
         });
+      },
+
+      timestampToDate: function(timestamp) {
+        return new Date(Number(timestamp)).toLocaleString();
+      },
+
+      showDetails: function() {
+        console.log('showing details for ' + this.selected);
       }
     });
   </script>

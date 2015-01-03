@@ -35,17 +35,13 @@
         PouchDB.sync(this.db, this.remoteDb, {
           live: false
         }).on('change', function(info) {
-          if (info.direction === 'pull') {
-            console.log('PouchDB remote modified');
-          } else {
-            console.log('PouchDB local modified');
-          }
+          console.log('PouchDB ' + (info.direction === 'pull' ? 'remote' : 'local') + ' modified');
           this.fire('modified');
-        }).on('uptodate', function(info) {
-          console.log('PouchDB remote is up-to-date');
+        }.bind(this)).on('complete', function(info) {
+          console.log('PouchDB sync is complete');
           this.fire('sync-complete');
         }.bind(this)).on('error', function(err) {
-          console.log('PouchDB error while updating:');
+          console.log('PouchDB error while synchronising:');
           console.log(err);
           this.fire('sync-error', err);
         }.bind(this));
