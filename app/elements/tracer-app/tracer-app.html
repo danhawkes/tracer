@@ -27,9 +27,6 @@
   <template>
     <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
 
-    <tracer-db id="db" synchronising="{{synchronising}}" on-sync-complete="{{showSyncCompletedToast}}"
-               on-sync-error="{{showSyncErrorToast}}"></tracer-db>
-
     <paper-action-dialog id="aboutDialog" heading="About" transition="core-transition-center">
       <p>
         Built with
@@ -78,8 +75,8 @@
           <section id="mapPage">
             <tracer-recordpage sizeable fit cross-fade db="{{db}}"></tracer-recordpage>
           </section>
-          <section id="tracesListPage">
-            <tracer-traceslistpage sizeable fit cross-fade db="{{db}}"></tracer-traceslistpage>
+          <section>
+            <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade db="{{db}}"></tracer-traceslistpage>
           </section>
         </core-animated-pages>
       </core-header-panel>
@@ -90,6 +87,7 @@
   <script>
     Polymer({
       created: function() {
+        this.db = document.createElement('tracer-db');
         this.menuItems = [
           {name: 'Map', pageTitle: 'Tracer', icon: 'maps:map'},
           {name: 'My Traces', pageTitle: 'My Traces', icon: 'polymer'}
@@ -97,14 +95,19 @@
         this.manifestUrl = location.origin + '/manifest.webapp';
         this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
         this.installable = false;
-
         this.pageTitle = this.menuItems[0].pageTitle;
+
         this.updateInstallButtonVisibility();
       },
 
       ready: function() {
-        // Need to inject the db element into various other elements, so it's set as an attribute.
-        this.db = this.$.db;
+        this.db.addEventListener('sync-complete', function(e) {
+          this.showSyncCompletedToast();
+        }.bind(this));
+
+        this.db.addEventListener('sync-error', function(e) {
+          this.showSyncErrorToast();
+        }.bind(this));
       },
 
       onMenuItemSelected: function(e, detail) {
@@ -168,8 +171,6 @@
       showSyncErrorToast: function() {
         this.$.syncCompletedToast.show();
       }
-
-
     });
   </script>
 </polymer-element>

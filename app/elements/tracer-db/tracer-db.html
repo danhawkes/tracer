@@ -6,16 +6,6 @@
   <script>
     Polymer({
       publish: {
-
-        /**
-         * Whether a remote sync operation is in-progress.
-         * @attribute
-         * @type boolean
-         * @default false
-         */
-        synchronising: false
-
-
         /**
          * Fired when a synchronisation task completed successfully.
          * @event sync-complete
@@ -24,6 +14,11 @@
         /**
          * Fired when a synchronisation task failed with an error.
          * @event sync-error
+         */
+
+        /**
+         * Fired when the database is modified.
+         * @event modified
          */
       },
 
@@ -37,7 +32,6 @@
       },
 
       sync: function() {
-        this.synchronising = true;
         PouchDB.sync(this.db, this.remoteDb, {
           live: false
         }).on('change', function(info) {
@@ -46,15 +40,14 @@
           } else {
             console.log('PouchDB local modified');
           }
+          this.fire('modified');
         }).on('uptodate', function(info) {
           console.log('PouchDB remote is up-to-date');
-          this.synchronising = false;
           this.fire('sync-complete');
         }.bind(this)).on('error', function(err) {
           console.log('PouchDB error while updating:');
           console.log(err);
           this.fire('sync-error', err);
-          this.synchronising = false;
         }.bind(this));
       },
 

@@ -37,6 +37,14 @@
         }
       },
 
+      dbChanged: function() {
+        if (this.db) {
+          this.db.addEventListener('modified', function(e) {
+            console.log('a');
+          });
+        }
+      },
+
       updateSize: function() {
         this.$.map.updateSize();
       },
