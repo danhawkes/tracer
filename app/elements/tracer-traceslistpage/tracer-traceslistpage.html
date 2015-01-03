@@ -4,28 +4,48 @@
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
 <link rel="import" href="../../bower_components/core-selector/core-selector.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
 
 <polymer-element name="tracer-traceslistpage">
 
   <template>
     <link rel="stylesheet" href="tracer-traceslistpage.css">
 
-    <div id="content" layout vertical fit>
-
-      <paper-shadow id="mapContainer">
-        <tracer-map id="map" fit path="{{path}}"></tracer-map>
-        <paper-fab id="fab-details" icon="info-outline" hidden?="{{selected == -1}}"
-                   on-click="{{showDetails}}"></paper-fab>
-      </paper-shadow>
-
-      <core-selector id="listContainer" flex selected="{{selected}}" selectedAttribute="">
-        <template repeat="{{item in items}}">
-          <paper-item on-hold="{{somethingheld}}">
-            {{item.id | timestampToDate}}
-          </paper-item>
-
-        </template>
-      </core-selector>
+    <div id="content" layout fit>
+      <!--<core-animated-pages id="pages" fit selected="{{selectedPageIndex}}"-->
+      <!--transitions="hero-transition cross-fade"-->
+      <!--on-core-animated-pages-transition-end="{{onTransitionEnd}}">-->
+      <!--<section fit>-->
+      <div id="listPage" cross-fade fit layout vertical>
+        <paper-shadow id="mapContainer" hero hero-id="map">
+          <tracer-map id="map" path="{{trace.positions}}"
+                      showPath="true"></tracer-map>
+          <!--<paper-fab id="fab-info" icon="info-outline" hidden?="{{selected == -1}}"-->
+          <!--on-tap="{{showTraceInfo}}"></paper-fab>-->
+        </paper-shadow>
+        <div class="panel" flex hero hero-id="content">
+          <!--<core-selector flex selected="{{selected}}" selectedAttribute="">-->
+            <template repeat="{{item in items}}">
+              <paper-item>{{item.id | formatDate}}</paper-item>
+            </template>
+          <!--</core-selector>-->
+        </div>
+      </div>
+      <!--</section>-->
+      <!--<section>-->
+      <!--<div id="infoPage" cross-fade fit on-click="{{back}}">-->
+      <!--<paper-shadow id="infoMapContainer">-->
+      <!--<tracer-map id="infoMap" hero hero-id="map" fit path="{{trace.positions}}"-->
+      <!--showPath="true"></tracer-map>-->
+      <!--</paper-shadow>-->
+      <!--<div class="panel" flex hero hero-id="content">-->
+      <!--<paper-item>Duration: {{trace | formatDuration}}</paper-item>-->
+      <!--<paper-item>Elevation change: {{trace | formatElevationChange}}</paper-item>-->
+      <!--<paper-item>Calories: 456</paper-item>-->
+      <!--</div>-->
+      <!--</div>-->
+      <!--</section>-->
+      <!--</core-animated-pages>-->
     </div>
 
   </template>
@@ -34,9 +54,6 @@
     Polymer({
       publish: {
         db: null
-
-
-
       },
 
       created: function() {
@@ -76,20 +93,54 @@
       },
 
       showTrace: function(traceId) {
-        this.db.loadTrace(traceId).then(function(doc) {
-          this.$.map.path = doc.positions;
-          this.$.map.showPath = true;
+        this.db.loadTrace(traceId).then(function(trace) {
+          this.trace = trace;
+          console.log('');
         }.bind(this)).catch(function(e) {
           console.log(e);
         });
       },
 
-      timestampToDate: function(timestamp) {
+      formatDate: function(timestamp) {
         return new Date(Number(timestamp)).toLocaleString();
       },
 
-      showDetails: function() {
-        console.log('showing details for ' + this.selected);
+      formatDuration: function(trace) {
+        if (trace) {
+          var d = new Date(trace.duration());
+          var s = '';
+          var hours = d.getHours;
+          var mins = d.getMinutes();
+          if (hours > 0) {
+            s += hours + ' hours';
+          }
+          s += mins + ' mins';
+          return s;
+        } else {
+          return '';
+        }
+      },
+
+      formatElevationChange: function(trace) {
+        if (trace) {
+          return trace.elevationChange() + 'm';
+        } else {
+          return '';
+        }
+      },
+
+      showTraceInfo: function() {
+        this.selectedPageIndex = 1;
+      },
+
+      back: function() {
+        this.selectedPageIndex = 0;
+      },
+
+      onTransitionEnd: function(a, b, c) {
+        if (this.selectedPageIndex == 1) {
+          this.$.infoMap.updateSize();
+        }
       }
     });
   </script>

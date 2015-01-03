@@ -99,6 +99,11 @@
 
         updateSize: function() {
           this.map.invalidateSize();
+          if (this.showPath) {
+            this.setMapToShowPath();
+          } else if (this.follow) {
+            this.setMapToCurrentPosition();
+          }
         },
 
         markerChanged: function(oldPos, newPos) {

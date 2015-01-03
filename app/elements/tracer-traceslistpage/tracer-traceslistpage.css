@@ -6,7 +6,11 @@
   height: 192px;
 }
 
-#listContainer {
+#infoMapContainer {
+  height: 300px;
+}
+
+.panel {
   padding: 32px 0;
   overflow-y: scroll;
 }
@@ -15,10 +19,10 @@
   background: white;
 }
 
-paper-fab {
+#listPage paper-fab {
   position: absolute;
   background: #fff600;
-  right: 16px;
-  bottom: 16px;
+  right: 32px;
+  bottom: 32px;
   color: black;
 }

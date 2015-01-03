@@ -47,8 +47,8 @@
         }.bind(this));
       },
 
-      saveTrace: function(trace, id) {
-        this.db.put(trace.toDb(id)).catch(function(err) {
+      saveTrace: function(trace) {
+        this.db.put(trace.toDb()).catch(function(err) {
           console.log(err);
         });
       },
@@ -64,7 +64,9 @@
       },
 
       loadTrace: function(id) {
-        return this.db.get(id);
+        return this.db.get(id).then(function(x) {
+          return new TR.Trace(x);
+        });
       }
     });
   </script>

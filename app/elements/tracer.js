@@ -17,9 +17,17 @@
   };
 
 
-  TR.Trace = function(name) {
-    this.name = name;
-    this.positions = [];
+  TR.Trace = function(other) {
+    this.positions = other.positions ? other.positions : [];
+    if (other.id) {
+      this.id = other.id;
+    } else if (other._id) {
+      this.id = other._id;
+    } else if (this.positions.length > 0) {
+      this.id = this.positions[0].time = '';
+    } else {
+      this.id = Date.now() + '';
+    }
   };
 
   TR.Trace.prototype = {
@@ -28,19 +36,26 @@
       this.positions.push(position);
     },
 
-    toString: function() {
-      return this.name + '(' + this.positions.length + ')';
+    duration: function() {
+      if (this.positions.length > 1) {
+        return this.positions[this.positions.length - 1].time - this.positions[0].time;
+      } else {
+        return 0;
+      }
     },
 
-    toDb: function(id) {
+    elevationChange: function() {
+      return 123;
+    },
+
+    toDb: function() {
       return {
-        _id: id,
+        _id: this.id,
         positions: this.positions
       }
     }
-  }
+  };
 
 
   return TR;
-
 })();

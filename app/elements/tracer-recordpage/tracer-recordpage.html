@@ -45,7 +45,7 @@
         if (this.recording) {
           this.$.location.ongoing = false;
           if (this.trace.positions.length >= 5) {
-            this.db.saveTrace(this.trace, Date.now() + '');
+            this.db.saveTrace(this.trace);
           } else {
             this.$.willNotSaveTraceToast.show();
           }
