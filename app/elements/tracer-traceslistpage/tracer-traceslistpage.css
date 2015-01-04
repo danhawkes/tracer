@@ -3,7 +3,7 @@
 }
 
 #listPage {
-  background: white;
+  background: #f0f0f0;
 }
 
 #infoPage {
@@ -16,13 +16,16 @@
 }
 
 #listContainer {
-  padding:  16px 0 32px 0;
+  padding: 16px 16px 32px 16px;
   overflow-y: auto;
 }
 
+#listItems {
+  background: white;
+}
+
 #infoToolbar {
-  background: rgba(255, 255, 255, 0.70);
-  z-index: 10000;
+  background: rgba(255, 255, 255, 0.85);
 }
 
 #infoTabs {
@@ -37,8 +40,6 @@ paper-tabs::shadow #selectionBar {
 paper-tabs paper-tab::shadow #ink {
   color: #fff600;
 }
-
-
 
 #metricsCard {
   background: white;

@@ -29,24 +29,19 @@
 
             </paper-shadow>
             <div id="listContainer" flex cross-fade>
-              <core-selector selected="{{selected}}" selectedAttribute="">
-                <template repeat="{{item in items}}">
-                  <paper-item>{{item.id | formatDate}}</paper-item>
-                </template>
-              </core-selector>
+              <paper-shadow id="listItems">
+                <core-selector selected="{{selected}}" selectedAttribute="">
+                  <template repeat="{{item in items}}">
+                    <paper-item>{{item.id | formatDate}}</paper-item>
+                  </template>
+                </core-selector>
+              </paper-shadow>
             </div>
           </div>
         </section>
 
         <section>
           <div id="infoPage" fit hero hero-id="map">
-            <core-toolbar id="infoToolbar" cross-fade fit layout>
-              <paper-icon-button icon="arrow-back" on-tap="{{back}}"></paper-icon-button>
-              <paper-tabs id="infoTabs" selected="{{selectedInfoPageIndex}}" flex>
-                <paper-tab>MAP</paper-tab>
-                <paper-tab>STATS</paper-tab>
-              </paper-tabs>
-            </core-toolbar>
             <core-animated-pages id="infoPages" fit selected="{{selectedInfoPageIndex}}" transitions="cross-fade">
               <section>
                 <tracer-map id="infoMap" cross-fade fit path="{{trace.positions}}" showPath="true"></tracer-map>
@@ -59,6 +54,13 @@
                 </paper-shadow>
               </section>
             </core-animated-pages>
+            <core-toolbar id="infoToolbar" cross-fade fit layout>
+              <paper-icon-button icon="arrow-back" on-tap="{{back}}"></paper-icon-button>
+              <paper-tabs id="infoTabs" selected="{{selectedInfoPageIndex}}" flex>
+                <paper-tab>MAP</paper-tab>
+                <paper-tab>STATS</paper-tab>
+              </paper-tabs>
+            </core-toolbar>
           </div>
         </section>
       </core-animated-pages>
@@ -153,7 +155,7 @@
         this.selectedListPageIndex = 0;
       },
 
-      onTransitionEnd: function(a, b, c) {
+      onTransitionEnd: function() {
         if (this.selectedListPageIndex == 1) {
           this.$.infoMap.updateSize();
         }
