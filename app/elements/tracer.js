@@ -45,7 +45,7 @@
     },
 
     elevationChange: function() {
-      return 123;
+      return this.duration() / 10000.0;
     },
 
     toDb: function() {

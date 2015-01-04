@@ -3,49 +3,65 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
 <link rel="import" href="../../bower_components/core-selector/core-selector.html">
 <link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 
 <polymer-element name="tracer-traceslistpage">
 
   <template>
     <link rel="stylesheet" href="tracer-traceslistpage.css">
 
-    <div id="content" layout fit>
-      <!--<core-animated-pages id="pages" fit selected="{{selectedPageIndex}}"-->
-      <!--transitions="hero-transition cross-fade"-->
-      <!--on-core-animated-pages-transition-end="{{onTransitionEnd}}">-->
-      <!--<section fit>-->
-      <div id="listPage" cross-fade fit layout vertical>
-        <paper-shadow id="mapContainer" hero hero-id="map">
-          <tracer-map id="map" path="{{trace.positions}}"
-                      showPath="true"></tracer-map>
-          <!--<paper-fab id="fab-info" icon="info-outline" hidden?="{{selected == -1}}"-->
-          <!--on-tap="{{showTraceInfo}}"></paper-fab>-->
-        </paper-shadow>
-        <div class="panel" flex hero hero-id="content">
-          <!--<core-selector flex selected="{{selected}}" selectedAttribute="">-->
-            <template repeat="{{item in items}}">
-              <paper-item>{{item.id | formatDate}}</paper-item>
-            </template>
-          <!--</core-selector>-->
-        </div>
-      </div>
-      <!--</section>-->
-      <!--<section>-->
-      <!--<div id="infoPage" cross-fade fit on-click="{{back}}">-->
-      <!--<paper-shadow id="infoMapContainer">-->
-      <!--<tracer-map id="infoMap" hero hero-id="map" fit path="{{trace.positions}}"-->
-      <!--showPath="true"></tracer-map>-->
-      <!--</paper-shadow>-->
-      <!--<div class="panel" flex hero hero-id="content">-->
-      <!--<paper-item>Duration: {{trace | formatDuration}}</paper-item>-->
-      <!--<paper-item>Elevation change: {{trace | formatElevationChange}}</paper-item>-->
-      <!--<paper-item>Calories: 456</paper-item>-->
-      <!--</div>-->
-      <!--</div>-->
-      <!--</section>-->
-      <!--</core-animated-pages>-->
+    <div layout fit>
+      <core-animated-pages id="pages" fit selected="{{selectedListPageIndex}}"
+                           transitions="hero-transition cross-fade"
+                           on-core-animated-pages-transition-end="{{onTransitionEnd}}">
+        <section>
+          <div id="listPage" cross-fade fit layout vertical>
+            <paper-shadow id="listMapContainer" hero hero-id="map">
+              <tracer-map id="map" fit path="{{trace.positions}}"
+                          showPath="true">
+                <paper-fab id="fab-info" icon="expand-more" hidden?="{{selected == -1}}"
+                           on-tap="{{showTraceInfo}}"></paper-fab>
+              </tracer-map>
+
+            </paper-shadow>
+            <div id="listContainer" flex cross-fade>
+              <core-selector selected="{{selected}}" selectedAttribute="">
+                <template repeat="{{item in items}}">
+                  <paper-item>{{item.id | formatDate}}</paper-item>
+                </template>
+              </core-selector>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div id="infoPage" fit hero hero-id="map">
+            <core-toolbar id="infoToolbar" cross-fade fit layout>
+              <paper-icon-button icon="arrow-back" on-tap="{{back}}"></paper-icon-button>
+              <paper-tabs id="infoTabs" selected="{{selectedInfoPageIndex}}" flex>
+                <paper-tab>MAP</paper-tab>
+                <paper-tab>STATS</paper-tab>
+              </paper-tabs>
+            </core-toolbar>
+            <core-animated-pages id="infoPages" fit selected="{{selectedInfoPageIndex}}" transitions="cross-fade">
+              <section>
+                <tracer-map id="infoMap" cross-fade fit path="{{trace.positions}}" showPath="true"></tracer-map>
+              </section>
+              <section>
+                <paper-shadow id="metricsCard" cross-fade>
+                  <paper-item>Duration: {{trace | formatDuration}}</paper-item>
+                  <paper-item>Elevation change: {{trace | formatElevationChange}}</paper-item>
+                  <paper-item>Calories: 456 kcal</paper-item>
+                </paper-shadow>
+              </section>
+            </core-animated-pages>
+          </div>
+        </section>
+      </core-animated-pages>
     </div>
 
   </template>
@@ -123,22 +139,22 @@
 
       formatElevationChange: function(trace) {
         if (trace) {
-          return trace.elevationChange() + 'm';
+          return trace.elevationChange().toFixed(1) + 'm';
         } else {
           return '';
         }
       },
 
       showTraceInfo: function() {
-        this.selectedPageIndex = 1;
+        this.selectedListPageIndex = 1;
       },
 
       back: function() {
-        this.selectedPageIndex = 0;
+        this.selectedListPageIndex = 0;
       },
 
       onTransitionEnd: function(a, b, c) {
-        if (this.selectedPageIndex == 1) {
+        if (this.selectedListPageIndex == 1) {
           this.$.infoMap.updateSize();
         }
       }

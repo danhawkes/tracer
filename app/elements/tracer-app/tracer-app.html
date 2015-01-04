@@ -55,18 +55,18 @@
             <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
           </template>
         </core-menu>
-        <tracer-menuitem icon="cloud-download" label="Install" on-click="{{installApp}}"
+        <tracer-menuitem icon="cloud-download" label="Install" on-tap="{{installApp}}"
                          hidden?="{{!installable}}"></tracer-menuitem>
-        <tracer-menuitem icon="info" label="About" on-click="{{showAboutDialog}}"></tracer-menuitem>
+        <tracer-menuitem icon="info" label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
       </core-header-panel>
 
       <core-header-panel main id="contentPanel">
         <core-toolbar id="mainToolbar">
-          <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-click="{{toggleDrawer}}"></paper-icon-button>
+          <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-tap="{{toggleDrawer}}"></paper-icon-button>
           <div hidden?="{{!narrow}}">{{pageTitle}}</div>
           <div flex></div>
           <paper-icon-button icon="refresh" hidden?="{{selectedPageIndex != 1}}"
-                             on-click="{{sync}}"></paper-icon-button>
+                             on-tap="{{sync}}"></paper-icon-button>
         </core-toolbar>
         <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
                              transitions="hero-transition cross-fade"

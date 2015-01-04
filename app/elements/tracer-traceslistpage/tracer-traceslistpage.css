@@ -2,21 +2,48 @@
   display: block;
 }
 
-#mapContainer {
-  height: 192px;
-}
-
-#infoMapContainer {
-  height: 300px;
-}
-
-.panel {
-  padding: 32px 0;
-  overflow-y: scroll;
-}
-
-#content {
+#listPage {
   background: white;
+}
+
+#infoPage {
+  background: #f0f0f0;
+}
+
+#listMapContainer {
+  height: 192px;
+  margin: 32px 16px 16px 16px;
+}
+
+#listContainer {
+  padding:  16px 0 32px 0;
+  overflow-y: auto;
+}
+
+#infoToolbar {
+  background: rgba(255, 255, 255, 0.70);
+  z-index: 10000;
+}
+
+#infoTabs {
+  height: 100%;
+  max-width: 192px;
+}
+
+paper-tabs::shadow #selectionBar {
+  background-color: #fff600;
+}
+
+paper-tabs paper-tab::shadow #ink {
+  color: #fff600;
+}
+
+
+
+#metricsCard {
+  background: white;
+  padding: 16px;
+  margin: 96px 32px 32px 32px;
 }
 
 #listPage paper-fab {
