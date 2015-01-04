@@ -50,7 +50,7 @@
         <core-toolbar id="drawerToolbar">
           <div hidden?="{{narrow}}">Tracer</div>
         </core-toolbar>
-        <core-menu id="menu" selectedAttribute="" selected="1" on-core-select="{{onMenuItemSelected}}">
+        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
           <template repeat="{{menuItems}}">
             <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
           </template>
