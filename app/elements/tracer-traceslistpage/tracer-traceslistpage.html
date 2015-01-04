@@ -28,15 +28,15 @@
               </tracer-map>
 
             </paper-shadow>
-            <div id="listContainer" flex cross-fade>
-              <paper-shadow id="listItems">
+            <paper-shadow id="listItems" flex cross-fade>
+              <div fit>
                 <core-selector selected="{{selected}}" selectedAttribute="">
                   <template repeat="{{item in items}}">
-                    <paper-item>{{item.id | formatDate}}</paper-item>
+                    <paper-item>{{item | formatDate}}</paper-item>
                   </template>
                 </core-selector>
-              </paper-shadow>
-            </div>
+              </div>
+            </paper-shadow>
           </div>
         </section>
 
@@ -89,12 +89,12 @@
 
       itemsChanged: function() {
         if (this.items && this.items.length > this.selected) {
-          this.showTrace(this.items[this.selected].id);
+          this.showTrace(this.items[this.selected]);
         }
       },
 
       selectedChanged: function(oldVal, newVal) {
-        this.showTrace(this.items[this.selected].id);
+        this.showTrace(this.items[this.selected]);
       },
 
       updateSize: function() {
@@ -102,8 +102,8 @@
       },
 
       updateList: function() {
-        this.db.listTraces().then(function(doc) {
-          this.items = doc.rows;
+        this.db.listTraces().then(function(items) {
+          this.items = items;
         }.bind(this)).catch(function(err) {
           console.print('error while listing traces:');
           console.print(err);
@@ -113,7 +113,6 @@
       showTrace: function(traceId) {
         this.db.loadTrace(traceId).then(function(trace) {
           this.trace = trace;
-          console.log('');
         }.bind(this)).catch(function(e) {
           console.log(e);
         });

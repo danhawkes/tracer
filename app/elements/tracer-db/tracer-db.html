@@ -60,7 +60,11 @@
       },
 
       listTraces: function() {
-        return this.db.allDocs();
+        return this.db.allDocs().then(function(doc) {
+          return doc.rows.map(function(x) {
+            return x.id;
+          });
+        });
       },
 
       loadTrace: function(id) {

@@ -16,12 +16,21 @@
 }
 
 #listContainer {
-  padding: 16px 16px 32px 16px;
-  overflow-y: auto;
+}
+
+#listContainer paper-shadow div {
+  background: yellowgreen;
+  overflow-y: scroll;
 }
 
 #listItems {
+  margin: 16px 16px 16px 16px;
+  padding: 16px 16px 32px 16px;
   background: white;
+}
+
+#listItems > div {
+  overflow-y: scroll;
 }
 
 #infoToolbar {
