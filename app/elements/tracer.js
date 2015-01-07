@@ -17,16 +17,29 @@
   };
 
 
-  TR.Trace = function(other) {
-    this.positions = other.positions ? other.positions : [];
-    if (other.id) {
-      this.id = other.id;
-    } else if (other._id) {
-      this.id = other._id;
-    } else if (this.positions.length > 0) {
-      this.id = this.positions[0].time = '';
-    } else {
+  TR.Trace = function(param) {
+
+    this.construct1 = function() {
       this.id = Date.now() + '';
+      this.positions = [];
+    }
+
+    this.construct2 = function(dbTrace) {
+      this.id = dbTrace._id;
+      this.positions = dbTrace.positions;
+    }
+
+    this.construct3 = function(trace) {
+      this.id = trace.id;
+      this.positions = trace.positions;
+    }
+
+    if (param === undefined) {
+      this.construct1();
+    } else if (param._id !== undefined) {
+      this.construct2(param);
+    } else {
+      this.construct3(param);
     }
   };
 
