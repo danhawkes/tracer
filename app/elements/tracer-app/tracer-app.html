@@ -43,6 +43,7 @@
     <paper-toast id="syncStartedToast" text="Synchronising…"></paper-toast>
     <paper-toast id="syncCompletedToast" text="Traces are up to date."></paper-toast>
     <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
+    <paper-toast id="demoModeToast"></paper-toast>
 
 
     <core-drawer-panel id="drawer" narrow="{{narrow}}">
@@ -58,6 +59,7 @@
         <tracer-menuitem icon="cloud-download" label="Install" on-tap="{{installApp}}"
                          hidden?="{{!installable}}"></tracer-menuitem>
         <tracer-menuitem icon="info" label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
       </core-header-panel>
 
       <core-header-panel main id="contentPanel">
@@ -71,8 +73,8 @@
         <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
                              transitions="hero-transition cross-fade"
                              on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
-          <section id="mapPage">
-            <tracer-recordpage sizeable fit cross-fade db="{{db}}"></tracer-recordpage>
+          <section>
+            <tracer-recordpage id="recordPage" sizeable fit cross-fade db="{{db}}"></tracer-recordpage>
           </section>
           <section>
             <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade db="{{db}}"></tracer-traceslistpage>
@@ -169,6 +171,13 @@
 
       showSyncErrorToast: function() {
         this.$.syncCompletedToast.show();
+      },
+
+      toggleDemoMode: function() {
+        var page = this.$.recordPage;
+        page.demoMode = !page.demoMode;
+        this.$.demoModeToast.text = 'Demo mode ' + (page.demoMode ? 'on' : 'off');
+        this.$.demoModeToast.show();
       }
     });
   </script>

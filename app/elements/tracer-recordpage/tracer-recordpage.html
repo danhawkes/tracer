@@ -29,7 +29,8 @@
     Polymer({
 
       publish: {
-        db: null
+        db: null,
+        demoMode: false
       },
 
       created: function() {
@@ -76,6 +77,10 @@
           this.trace.appendPosition(position);
           this.$.map.path = this.trace.positions;
         }
+      },
+
+      demoModeChanged: function() {
+        this.$.location.demoMode = this.demoMode;
       }
 
     });

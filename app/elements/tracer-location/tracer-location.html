@@ -25,7 +25,9 @@
          * @type boolean
          * @default false
          */
-        ongoing: false
+        ongoing: false,
+
+        demoMode: false
 
         /**
          * Fired when a new position is available.
@@ -55,8 +57,17 @@
           }
         };
 
-        // this.geolocation = new Mocks.geolocation();
         this.geolocation = window.navigator.geolocation;
+      },
+
+      demoModeChanged: function(oldValue, newValue) {
+        if (newValue) {
+          this.geolocation = new Mocks.geolocation();
+          console.log('Demo mode enabled');
+        } else {
+          this.geolocation = window.navigator.geolocation;
+          console.log('Demo mode disabled');
+        }
       },
 
       ongoingChanged: function(oldValue, newValue) {
