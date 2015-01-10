@@ -133,7 +133,14 @@
       },
 
       formatDate: function(timestamp) {
-        return new Date(Number(timestamp)).toLocaleString();
+        return new Date(Number(timestamp)).toLocaleDateString('en', {
+          hour12: true,
+          minute: 'numeric',
+          hour: 'numeric',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
       },
 
       formatDuration: function(trace) {
@@ -142,10 +149,14 @@
           var s = '';
           var hours = d.getHours;
           var mins = d.getMinutes();
+          var seconds = d.getSeconds();
           if (hours > 0) {
             s += hours + ' hours';
           }
-          s += mins + ' mins';
+          if (mins > 0) {
+            s += mins + ' mins';
+          }
+          s += seconds + ' seconds';
           return s;
         } else {
           return '';
