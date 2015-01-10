@@ -19,18 +19,18 @@
                            transitions="hero-transition cross-fade"
                            on-core-animated-pages-transition-end="{{onTransitionEnd}}">
         <section>
-          <div id="listPage" cross-fade fit layout vertical>
-            <paper-shadow id="listMapContainer" hero hero-id="map">
+          <div id="summaryPage" fit layout vertical>
+            <paper-shadow id="summaryMapCard" class="card" hero hero-id="map">
               <tracer-map id="map" fit path="{{trace.positions}}"
                           showPath="true">
-                <paper-fab id="fab-info" icon="expand-more" hidden?="{{selected == -1}}"
-                           on-tap="{{showTraceInfo}}"></paper-fab>
               </tracer-map>
-
+              <paper-fab hero hero-id="fab" icon="expand-more" hidden?="{{selectedTraceIndex === -1}}"
+                         on-tap="{{toggleDetailView}}"></paper-fab>
             </paper-shadow>
-            <paper-shadow id="listItems" flex cross-fade>
+
+            <paper-shadow id="summaryListCard" class="card" flex cross-fade>
               <div fit>
-                <core-selector selected="{{selected}}" selectedAttribute="">
+                <core-selector selected="{{selectedTraceIndex}}" selectedAttribute="">
                   <template repeat="{{item in items}}">
                     <paper-item>{{item | formatDate}}</paper-item>
                   </template>
@@ -41,26 +41,28 @@
         </section>
 
         <section>
-          <div id="infoPage" fit hero hero-id="map">
-            <core-animated-pages id="infoPages" fit selected="{{selectedInfoPageIndex}}" transitions="cross-fade">
+          <div id="detailPage" fit>
+            <core-animated-pages id="detailSubPages" hero hero-id="map" fit selected="{{selectedInfoPageIndex}}"
+                                 transitions="cross-fade">
               <section>
                 <tracer-map id="infoMap" cross-fade fit path="{{trace.positions}}" showPath="true"></tracer-map>
               </section>
               <section>
-                <paper-shadow id="metricsCard" cross-fade>
+                <paper-shadow id="detailMetricsCard" class="card" cross-fade>
                   <paper-item>Duration: {{trace | formatDuration}}</paper-item>
+                  <paper-item>Duration: {{trace | formatDistance}}</paper-item>
                   <paper-item>Elevation change: {{trace | formatElevationChange}}</paper-item>
                   <paper-item>Calories: 456 kcal</paper-item>
                 </paper-shadow>
               </section>
             </core-animated-pages>
-            <core-toolbar id="infoToolbar" cross-fade fit layout>
-              <paper-icon-button icon="arrow-back" on-tap="{{back}}"></paper-icon-button>
-              <paper-tabs id="infoTabs" selected="{{selectedInfoPageIndex}}" flex>
+            <core-toolbar id="detailToolbar" cross-fade fit layout>
+              <paper-tabs id="detailToolbarTabs" selected="{{selectedInfoPageIndex}}" flex>
                 <paper-tab>MAP</paper-tab>
                 <paper-tab>STATS</paper-tab>
               </paper-tabs>
             </core-toolbar>
+            <paper-fab hero hero-id="fab" icon="expand-less" on-tap="{{toggleDetailView}}"></paper-fab>
           </div>
         </section>
       </core-animated-pages>
@@ -150,6 +152,26 @@
         }
       },
 
+      formatDuration: function(trace) {
+        if (trace) {
+          var d = new Date(trace.duration());
+          var s = '';
+          var hours = d.getHours;
+          var mins = d.getMinutes();
+          var seconds = d.getSeconds();
+          if (hours > 0) {
+            s += hours + ' hours';
+          }
+          if (mins > 0) {
+            s += mins + ' mins';
+          }
+          s += seconds + ' seconds';
+          return s;
+        } else {
+          return '';
+        }
+      },
+
       formatElevationChange: function(trace) {
         if (trace) {
           return trace.elevationChange().toFixed(1) + 'm';
@@ -158,12 +180,8 @@
         }
       },
 
-      showTraceInfo: function() {
-        this.selectedListPageIndex = 1;
-      },
-
-      back: function() {
-        this.selectedListPageIndex = 0;
+      toggleDetailView: function() {
+        this.selectedListPageIndex = this.selectedListPageIndex == 0 ? 1 : 0;
       },
 
       onTransitionEnd: function() {

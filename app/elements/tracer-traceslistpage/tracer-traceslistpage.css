@@ -2,64 +2,58 @@
   display: block;
 }
 
-#listPage {
+#summaryPage, #detailPage {
   background: #f0f0f0;
 }
 
-#infoPage {
-  background: #f0f0f0;
-}
-
-#listMapContainer {
-  height: 192px;
-  margin: 32px 16px 16px 16px;
-}
-
-#listContainer {
-}
-
-#listContainer paper-shadow div {
-  background: yellowgreen;
-  overflow-y: scroll;
-}
-
-#listItems {
-  margin: 16px 16px 16px 16px;
-  padding: 16px 16px 32px 16px;
-  background: white;
-}
-
-#listItems > div {
-  overflow-y: scroll;
-}
-
-#infoToolbar {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-#infoTabs {
-  height: 100%;
-  max-width: 192px;
-}
-
-paper-tabs::shadow #selectionBar {
-  background-color: #fff600;
-}
-
-paper-tabs paper-tab::shadow #ink {
-  color: #fff600;
-}
-
-#metricsCard {
-  background: white;
-  padding: 16px;
-  margin: 96px 32px 32px 32px;
-}
-
-#listPage paper-fab {
+#summaryPage paper-fab, #detailPage paper-fab {
   position: absolute;
   background: #fff600;
   right: 32px;
   bottom: 32px;
   color: black;
 }
+
+.card {
+  background: white;
+  border-radius: 3px;
+  margin: 16px;
+}
+
+#summaryMapCard {
+  height: 192px;
+}
+
+#summaryListCard {
+  padding: 16px;
+}
+
+#detailMetricsCard {
+  margin-top: 80px;
+  padding: 16px;
+}
+
+#summaryListCard > div {
+  overflow-y: scroll;
+}
+
+#detailPage core-toolbar {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+#detailPage core-toolbar paper-tabs {
+  height: 100%;
+  max-width: 256px;
+}
+
+#detailPage core-toolbar paper-tabs::shadow #selectionBar {
+  background-color: #fff600;
+}
+
+#detailPage core-toolbar paper-tabs paper-tab::shadow #ink {
+  color: #fff600;
+}
+
+
+
+
