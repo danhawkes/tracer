@@ -24,7 +24,8 @@
 
       created: function() {
         this.db = new PouchDB('locations');
-        this.remoteDb = new PouchDB('https://ttookedgaimplithenturedi:ywUb2kx3jnA40Yp6rou5Xyc5@arcs.cloudant.com/tracer', {
+        this.remoteDb = new
+          PouchDB('http://testuser1:password1@178.62.29.239:5984/userdb-746573747573657231', {
           ajax: {
             cache: true
           }
