@@ -75,7 +75,8 @@
       },
 
       created: function() {
-        this.selected = 0;
+        this.items = [];
+        this.selectedTraceIndex = -1;
       },
 
       dbChanged: function() {
@@ -88,13 +89,32 @@
       },
 
       itemsChanged: function() {
-        if (this.items && this.items.length > this.selected) {
-          this.showTrace(this.items[this.selected]);
+        if (this.items.length === 0) {
+          // Select none if list is now empty
+          this.selectedTraceIndex = -1;
+        } else if (this.selectedTraceIndex === -1 || (this.selectedTraceIndex + 1) >= this.items.length) {
+          // Select first item if previous selection is now out of range, or there was no previous selection
+          this.selectedTraceIndex = 0;
+        } else {
+          // Selection is still valid, but data is stale. Reload trace.
+          this.loadTrace(this.items[this.selectedTraceIndex]);
         }
       },
 
-      selectedChanged: function(oldVal, newVal) {
-        this.showTrace(this.items[this.selected]);
+      selectedTraceIndexChanged: function() {
+        if (this.selectedTraceIndex >= 0) {
+          this.loadTrace(this.items[this.selectedTraceIndex]);
+        } else {
+          this.trace = null;
+        }
+      },
+
+      loadTrace: function(traceId) {
+        this.db.loadTrace(traceId).then(function(trace) {
+          this.trace = trace;
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
       },
 
       updateSize: function() {
@@ -107,14 +127,6 @@
         }.bind(this)).catch(function(err) {
           console.print('error while listing traces:');
           console.print(err);
-        });
-      },
-
-      showTrace: function(traceId) {
-        this.db.loadTrace(traceId).then(function(trace) {
-          this.trace = trace;
-        }.bind(this)).catch(function(e) {
-          console.log(e);
         });
       },
 
