@@ -163,21 +163,9 @@
         }
       },
 
-      formatDuration: function(trace) {
+      formatDistance: function(trace) {
         if (trace) {
-          var d = new Date(trace.duration());
-          var s = '';
-          var hours = d.getHours;
-          var mins = d.getMinutes();
-          var seconds = d.getSeconds();
-          if (hours > 0) {
-            s += hours + ' hours';
-          }
-          if (mins > 0) {
-            s += mins + ' mins';
-          }
-          s += seconds + ' seconds';
-          return s;
+          return 'Bloody miles!';
         } else {
           return '';
         }
