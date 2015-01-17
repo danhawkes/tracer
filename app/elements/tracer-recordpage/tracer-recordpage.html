@@ -8,6 +8,8 @@
   <template>
     <link rel="stylesheet" href="tracer-recordpage.css">
 
+    <tracer-globalinjectorthing db="{{db}}"></tracer-globalinjectorthing>
+
     <tracer-location id="location" enabled="{{recording}}"
                      on-slowlock="{{showWaitingForLocationToast}}"
                      on-position="{{onNewLocation}}"></tracer-location>
@@ -29,7 +31,6 @@
     Polymer({
 
       publish: {
-        db: null,
         demoMode: false
       },
 

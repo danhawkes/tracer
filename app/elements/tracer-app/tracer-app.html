@@ -26,25 +26,16 @@
   <template>
     <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
 
-    <paper-action-dialog id="aboutDialog" heading="Tracer" transition="core-transition-center">
-      <p>
-        Built with
-        <a href="https://www.polymer-project.org">Polymer</a>,
-        <a href="http://leafletjs.com/">Leaflet.js</a> and
-        <a href="https://www.mapbox.com">Mapbox</a>.
-      </p>
+    <tracer-globalinjectorthing db="{{db}}" account="{{account}}"></tracer-globalinjectorthing>
 
-      <p>
-        Contribute on <a href="https://github.com/danhawkes/tracer">Github</a>.
-      </p>
-      <paper-button affirmative>OK</paper-button>
-    </paper-action-dialog>
+    <tracer-login id="loginDialog"></tracer-login>
+    <tracer-about id="aboutDialog"></tracer-about>
+
     <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
     <paper-toast id="syncStartedToast" text="Synchronising…"></paper-toast>
     <paper-toast id="syncCompletedToast" text="Traces are up to date."></paper-toast>
     <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
     <paper-toast id="demoModeToast"></paper-toast>
-
 
     <core-drawer-panel id="drawer" narrow="{{narrow}}">
       <core-header-panel id="drawerPanel" drawer mode="seamed">
@@ -56,9 +47,10 @@
             <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
           </template>
         </core-menu>
-        <tracer-menuitem icon="cloud-download" label="Install" on-tap="{{installApp}}"
+        <tracer-menuitem label="Install" on-tap="{{installApp}}"
                          hidden?="{{!installable}}"></tracer-menuitem>
-        <tracer-menuitem icon="info" label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="Login" on-tap="{{showLoginDialog}}"></tracer-menuitem>
         <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
       </core-header-panel>
 
@@ -74,10 +66,10 @@
                              transitions="hero-transition cross-fade"
                              on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
           <section>
-            <tracer-recordpage id="recordPage" sizeable fit cross-fade db="{{db}}"></tracer-recordpage>
+            <tracer-recordpage id="recordPage" sizeable fit cross-fade></tracer-recordpage>
           </section>
           <section>
-            <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade db="{{db}}"></tracer-traceslistpage>
+            <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade></tracer-traceslistpage>
           </section>
         </core-animated-pages>
       </core-header-panel>
@@ -88,7 +80,6 @@
   <script>
     Polymer({
       created: function() {
-        this.db = document.createElement('tracer-db');
         this.menuItems = [
           {name: 'Record', pageTitle: 'Tracer', icon: 'av:play-arrow'},
           {name: 'My Traces', pageTitle: 'My Traces', icon: 'polymer'}
@@ -109,6 +100,19 @@
         this.db.addEventListener('sync-error', function(e) {
           this.showSyncErrorToast();
         }.bind(this));
+
+
+        this.account.register('!!!', 'pass2').then(function(e) {
+          console.log('register success: ' + JSON.stringify(e));
+        }).catch(function(e) {
+          console.log('register error: ' + JSON.stringify(e));
+        });
+
+        this.account.login('testuser1', 'password1').then(function(e) {
+          console.log('login success: ' + JSON.stringify(e));
+        }).catch(function(e) {
+          console.log('login error: ' + JSON.stringify(e));
+        });
       },
 
       onMenuItemSelected: function(e, detail) {
@@ -124,11 +128,6 @@
         if (sizeableElem) {
           sizeableElem.updateSize();
         }
-      },
-
-      showAboutDialog: function() {
-        this.$.drawer.closeDrawer();
-        this.$.aboutDialog.opened = true;
       },
 
       installApp: function() {
@@ -171,6 +170,16 @@
 
       showSyncErrorToast: function() {
         this.$.syncCompletedToast.show();
+      },
+
+      showLoginDialog: function() {
+        this.$.drawer.closeDrawer();
+        this.$.loginDialog.show();
+      },
+
+      showAboutDialog: function() {
+        this.$.drawer.closeDrawer();
+        this.$.aboutDialog.show();
       },
 
       toggleDemoMode: function() {

@@ -1,0 +1,107 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-decorator.html">
+<link rel="import" href="../../bower_components/core-transition/core-transition.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
+
+<polymer-element name="tracer-login">
+  <template>
+
+    <tracer-globalinjectorthing account="{{account}}"></tracer-globalinjectorthing>
+
+    <paper-action-dialog id="dialog" heading="Login" transition="core-transition-center">
+
+      <core-animated-pages selected="{{selectedPagendex}}"
+                           transitions="cross-fade">
+        <div layout vertical>
+          <paper-input-decorator label="Username" floatingLabel="true" isInvalid="{{usernameInvalid}}"
+                                 error="{{usernameError}}">
+            <input id="usernameInput" is="core-input" value="testuser1">
+          </paper-input-decorator>
+          <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordInvalid}}"
+                                 error="{{passwordError}}">
+            <input id="passwordInput" is="core-input" value="password1">
+          </paper-input-decorator>
+        </div>
+      </core-animated-pages>
+
+
+      <paper-button dismissive>CANCEL</paper-button>
+      <paper-button affirmative on-tap="{{login}}">SUBMIT</paper-button>
+
+
+    </paper-action-dialog>
+
+    <paper-toast id="loginToast"></paper-toast>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        loggedIn: false
+      },
+
+      created: function() {
+        this.selectedPageIndex = 0;
+      },
+
+      ready: function() {
+//        this.$.usernameInput.onchange = function() {
+//          this.validateUsername(this.cleanInputValue(this.$.usernameInput.value));
+//        }.bind(this);
+        this.account.addEventListener('tracer-login-error', function(e) {
+          this.showLoginError(e.detail);
+        }.bind(this));
+      },
+
+      show: function() {
+        this.$.dialog.open();
+      },
+
+      cleanInputValue: function(value) {
+        return value.trim();
+      },
+
+      validateUsername: function(value) {
+        console.log('testing "' + value + '"');
+        var constraints = [
+          // Match at least one non-whitespace char after a valid char
+          [/^(\d|[a-z])+\S$/i, "Value can only include letters and numbers."],
+          // Match all whitespace chars
+          [/^\s+$/, "Value is required."],
+        ];
+        for (var i = 0; i < constraints.length; i++) {
+          if (!constraints[i][0].test(value)) {
+            this.usernameError = constraints[i][1];
+            this.usernameInvalid = true;
+            return;
+          }
+        }
+        this.usernameError = null;
+        this.usernameInvalid = false;
+      },
+
+      login: function() {
+        var username = this.cleanInputValue(this.$.usernameInput.value);
+        var password = this.cleanInputValue(this.$.passwordInput.value);
+        this.account.login(username, password);
+      },
+
+      showLoginError: function(statusCode) {
+        var message;
+        if (statusCode === 401) {
+          message = 'Username/password were not recognised.';
+        } else {
+          message = 'An unknown error occurred.';
+        }
+        this.$.loginToast.text = message;
+        this.$.loginToast.show();
+        this.show();
+      }
+
+
+    });
+  </script>
+</polymer-element>

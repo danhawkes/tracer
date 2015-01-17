@@ -1,11 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="tracer-db" attributes="">
+<polymer-element name="tracer-db">
   <script src="../../bower_components/pouchdb/dist/pouchdb.min.js"></script>
   <script src="../tracer.js"></script>
   <script>
     Polymer({
       publish: {
+        account: null,
+        dbId: null
+
         /**
          * Fired when a synchronisation task completed successfully.
          * @event sync-complete
@@ -24,12 +27,23 @@
 
       created: function() {
         this.db = new PouchDB('locations');
-        this.remoteDb = new
-          PouchDB('http://testuser1:password1@178.62.29.239:5984/userdb-746573747573657231', {
-          ajax: {
-            cache: true
-          }
-        });
+      },
+
+      accountChanged: function() {
+        if (this.account !== null) {
+          var observer = new PathObserver(this.account, 'dbId');
+          observer.open(function(newValue, oldValue) {
+            this.remoteDb = new
+              PouchDB('http://' + this.account.username + ':' + this.account.password + '@178.62.29.239:5984/' +
+            this.account.dbId, {
+              ajax: {
+                cache: true
+              }
+            });
+          }.bind(this));
+        } else {
+          this.remoteDb = null;
+        }
       },
 
       sync: function() {
