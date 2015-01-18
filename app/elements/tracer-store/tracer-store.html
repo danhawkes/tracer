@@ -1,13 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="tracer-db">
+<polymer-element name="tracer-store">
   <script src="../../bower_components/pouchdb/dist/pouchdb.min.js"></script>
   <script src="../tracer.js"></script>
   <script>
     Polymer({
       publish: {
-        account: null,
-        dbId: null
+        user: null
 
         /**
          * Fired when a synchronisation task completed successfully.
@@ -26,23 +25,23 @@
       },
 
       created: function() {
-        this.db = new PouchDB('locations');
+        this.db = new PouchDB('local');
+        this.db.get('user').then(function(doc) {
+          this.user = doc;
+        }.bind(this));
       },
 
-      accountChanged: function() {
-        if (this.account !== null) {
-          var observer = new PathObserver(this.account, 'dbId');
-          observer.open(function(newValue, oldValue) {
-            this.remoteDb = new
-              PouchDB('http://' + this.account.username + ':' + this.account.password + '@178.62.29.239:5984/' +
-            this.account.dbId, {
-              ajax: {
-                cache: true
-              }
-            });
-          }.bind(this));
-        } else {
-          this.remoteDb = null;
+      userChanged: function() {
+        this.db.put(this.user, 'user').catch(function(e) {
+          console.log(e);
+        });
+        if (this.user !== null) {
+          this.remoteDb = new
+            PouchDB(this.user.dbUrl, {
+            ajax: {
+              cache: true
+            }
+          });
         }
       },
 
@@ -87,8 +86,8 @@
       },
 
       loadTrace: function(id) {
-        return this.db.get(id).then(function(x) {
-          return new TR.Trace(x);
+        return this.db.get(id).then(function(doc) {
+          return new TR.Trace(doc);
         });
       }
     });

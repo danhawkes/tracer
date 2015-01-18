@@ -8,7 +8,7 @@
   <template>
     <link rel="stylesheet" href="tracer-recordpage.css">
 
-    <tracer-globalinjectorthing db="{{db}}"></tracer-globalinjectorthing>
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
 
     <tracer-location id="location" enabled="{{recording}}"
                      on-slowlock="{{showWaitingForLocationToast}}"
@@ -47,7 +47,7 @@
         if (this.recording) {
           this.$.location.ongoing = false;
           if (this.trace.positions.length >= 5) {
-            this.db.saveTrace(this.trace);
+            this.store.saveTrace(this.trace);
           } else {
             this.$.willNotSaveTraceToast.show();
           }

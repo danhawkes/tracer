@@ -14,7 +14,7 @@
   <template>
     <link rel="stylesheet" href="tracer-traceslistpage.css">
 
-    <tracer-globalinjectorthing db="{{db}}"></tracer-globalinjectorthing>
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
 
     <div layout fit>
       <core-animated-pages id="pages" fit selected="{{selectedListPageIndex}}"
@@ -79,10 +79,10 @@
         this.selectedTraceIndex = -1;
       },
 
-      dbChanged: function() {
-        if (this.db) {
+      ready: function() {
+        if (this.store) {
           this.updateList();
-          this.db.addEventListener('modified', function(e) {
+          this.store.addEventListener('modified', function(e) {
             this.updateList();
           }.bind(this));
         }
@@ -110,7 +110,7 @@
       },
 
       loadTrace: function(traceId) {
-        this.db.loadTrace(traceId).then(function(trace) {
+        this.store.loadTrace(traceId).then(function(trace) {
           this.trace = trace;
         }.bind(this)).catch(function(e) {
           console.log(e);
@@ -122,7 +122,7 @@
       },
 
       updateList: function() {
-        this.db.listTraces().then(function(items) {
+        this.store.listTraces().then(function(items) {
           this.items = items;
         }.bind(this)).catch(function(err) {
           console.print('error while listing traces:');

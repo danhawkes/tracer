@@ -22,11 +22,9 @@ app.use(passport.initialize());
 
 passport.use(new LocalStrategy(
   function(username, password, done) {
-    console.log('handling request');
     authenticateUser(username, password, done);
   }
 ));
-
 
 app.post('/register', function(req, res) {
   var username = req.body.username;
@@ -43,7 +41,6 @@ app.post('/register', function(req, res) {
     res.status(400).send();
   }
 });
-
 
 app.post('/login', function(req, res, next) {
   passport.authenticate('local', {
@@ -62,24 +59,21 @@ app.post('/login', function(req, res, next) {
 });
 
 var server = app.listen(process.env.PORT || 8080, function() {
-  console.log('Server started.')
+  console.log('Tracer server started.')
 });
 
-
 var dbServer = {
-  uri: 'http://178.62.29.239:5984',
-  adminUsername: 'admin',
-  adminPassword: 'KtgFck3D557Sn545'
-}
-
-function calcDbFromUsername(username) {
-  return 'userdb-' + new Buffer(username).toString('hex');
-}
+  protocol: 'http',
+  domain: '178.62.29.239',
+  port: 5984,
+  adminUser: 'admin',
+  adminPass: 'KtgFck3D557Sn545'
+};
 
 function authenticateUser(username, password, callback) {
-  var db = calcDbFromUsername(username);
+  var dbName = calcDbNameFromUsername(username);
   request.get({
-    uri: dbServer.uri + '/' + db,
+    uri: dbServer.protocol + '://' + dbServer.domain + ':' + dbServer.port + '/' + dbName,
     auth: {
       'user': username,
       'pass': password
@@ -89,7 +83,7 @@ function authenticateUser(username, password, callback) {
       return callback(e);
     }
     if (response.statusCode === 200) {
-      callback(null, {username: username, db: db});
+      callback(null, createUserObject(dbName, username, password));
     } else if (response.statusCode === 401) {
       callback(null, false);
     } else {
@@ -99,12 +93,12 @@ function authenticateUser(username, password, callback) {
 }
 
 function createUser(username, password, callback) {
-  var db = calcDbFromUsername(username);
+  var db = calcDbNameFromUsername(username);
   request.put({
-    uri: dbServer.uri + '/' + db,
+    uri: dbServer.protocol + '://' + dbServer.domain + ':' + dbServer.port + '/_users/org.couchdb.user:' + username,
     auth: {
-      'user': dbServer.adminUsername,
-      'pass': dbServer.adminPassword
+      'user': dbServer.adminUser,
+      'pass': dbServer.adminPass
     },
     json: {
       "_id": "org.couchdb.user:dbreader",
@@ -118,11 +112,22 @@ function createUser(username, password, callback) {
       return callback(err);
     }
     if (response.statusCode === 201) {
-      callback(null, {username: username, db: db});
+      callback(null, createUserObject(dbName, username, password));
     } else if (response.statusCode === 412) {
       callback(new Error('User already exists'));
     } else {
       callback(new Error('Unknown error occurred while creating user'));
     }
   });
+}
+
+function createUserObject(dbName, username, password) {
+  return {
+    'username': username,
+    'dbUrl': dbServer.protocol + '://' + username + ':' + password + '@' + dbServer.domain + ':' + dbServer.port + '/' + dbName
+  };
+}
+
+function calcDbNameFromUsername(username) {
+  return 'userdb-' + new Buffer(username).toString('hex');
 }

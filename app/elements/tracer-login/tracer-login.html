@@ -10,24 +10,21 @@
 <polymer-element name="tracer-login">
   <template>
 
-    <tracer-globalinjectorthing account="{{account}}"></tracer-globalinjectorthing>
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
+    <tracer-account id="account"></tracer-account>
 
     <paper-action-dialog id="dialog" heading="Login" transition="core-transition-center">
 
-      <core-animated-pages selected="{{selectedPagendex}}"
-                           transitions="cross-fade">
-        <div layout vertical>
-          <paper-input-decorator label="Username" floatingLabel="true" isInvalid="{{usernameInvalid}}"
-                                 error="{{usernameError}}">
-            <input id="usernameInput" is="core-input" value="testuser1">
-          </paper-input-decorator>
-          <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordInvalid}}"
-                                 error="{{passwordError}}">
-            <input id="passwordInput" is="core-input" value="password1">
-          </paper-input-decorator>
-        </div>
-      </core-animated-pages>
-
+      <div layout vertical>
+        <paper-input-decorator label="Username" floatingLabel="true" isInvalid="{{usernameInvalid}}"
+                               error="{{usernameError}}">
+          <input id="usernameInput" is="core-input" value="testuser1">
+        </paper-input-decorator>
+        <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordInvalid}}"
+                               error="{{passwordError}}">
+          <input id="passwordInput" is="core-input" value="password1">
+        </paper-input-decorator>
+      </div>
 
       <paper-button dismissive>CANCEL</paper-button>
       <paper-button affirmative on-tap="{{login}}">SUBMIT</paper-button>
@@ -51,9 +48,6 @@
 //        this.$.usernameInput.onchange = function() {
 //          this.validateUsername(this.cleanInputValue(this.$.usernameInput.value));
 //        }.bind(this);
-        this.account.addEventListener('tracer-login-error', function(e) {
-          this.showLoginError(e.detail);
-        }.bind(this));
       },
 
       show: function() {
@@ -86,7 +80,9 @@
       login: function() {
         var username = this.cleanInputValue(this.$.usernameInput.value);
         var password = this.cleanInputValue(this.$.passwordInput.value);
-        this.account.login(username, password);
+        this.$.account.login(username, password).then(function(e) {
+          this.store.user = e;
+        }.bind(this));
       },
 
       showLoginError: function(statusCode) {

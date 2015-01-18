@@ -4,19 +4,15 @@
   <script>
     (function() {
 
-      var account = document.createElement('tracer-account');
-      var db = document.createElement('tracer-db');
+      var store = document.createElement('tracer-store');
 
       Polymer({
         publish: {
-          account: null,
-          db: null
+          store: null
         },
 
         created: function() {
-          this.account = account;
-          this.db = db;
-          this.db.account = this.account;
+          this.store = store;
         }
       });
     })();

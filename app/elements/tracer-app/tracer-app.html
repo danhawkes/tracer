@@ -26,7 +26,7 @@
   <template>
     <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
 
-    <tracer-globalinjectorthing db="{{db}}" account="{{account}}"></tracer-globalinjectorthing>
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
 
     <tracer-login id="loginDialog"></tracer-login>
     <tracer-about id="aboutDialog"></tracer-about>
@@ -51,6 +51,7 @@
                          hidden?="{{!installable}}"></tracer-menuitem>
         <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
         <tracer-menuitem label="Login" on-tap="{{showLoginDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="{{store.user.username}}"></tracer-menuitem>
         <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
       </core-header-panel>
 
@@ -93,26 +94,13 @@
       },
 
       ready: function() {
-        this.db.addEventListener('sync-complete', function(e) {
+        this.store.addEventListener('sync-complete', function(e) {
           this.showSyncCompletedToast();
         }.bind(this));
 
-        this.db.addEventListener('sync-error', function(e) {
+        this.store.addEventListener('sync-error', function(e) {
           this.showSyncErrorToast();
         }.bind(this));
-
-
-        this.account.register('!!!', 'pass2').then(function(e) {
-          console.log('register success: ' + JSON.stringify(e));
-        }).catch(function(e) {
-          console.log('register error: ' + JSON.stringify(e));
-        });
-
-        this.account.login('testuser1', 'password1').then(function(e) {
-          console.log('login success: ' + JSON.stringify(e));
-        }).catch(function(e) {
-          console.log('login error: ' + JSON.stringify(e));
-        });
       },
 
       onMenuItemSelected: function(e, detail) {
@@ -160,7 +148,7 @@
       },
 
       sync: function() {
-        this.db.sync();
+        this.store.sync();
         this.$.syncStartedToast.show();
       },
 
