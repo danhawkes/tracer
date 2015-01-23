@@ -1,5 +1,6 @@
 #drawerToolbar {
   background-color: #fff600;
+  font-size: small;
 }
 
 #mainToolbar {
@@ -20,4 +21,8 @@ core-header-panel#contentPanel {
 
 #container {
   height: 100%;
+}
+
+.userStatus {
+  padding: 8px 16px ;
 }

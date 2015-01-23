@@ -1,7 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
 <polymer-element name="tracer-store">
-  <script src="../../bower_components/pouchdb/dist/pouchdb.min.js"></script>
+  <script src="../../bower_components/pouchdb/dist/pouchdb.js"></script>
   <script src="../tracer.js"></script>
   <script>
     Polymer({
@@ -31,17 +31,29 @@
         }.bind(this));
       },
 
-      userChanged: function() {
-        this.db.put(this.user, 'user').catch(function(e) {
-          console.log(e);
-        });
+      userChanged: function(oldValue, newValue) {
         if (this.user !== null) {
+          this.db.put(this.user, 'user').catch(function(e) {
+            console.log(e);
+          });
           this.remoteDb = new
             PouchDB(this.user.dbUrl, {
             ajax: {
               cache: true
             }
           });
+        } else {
+          // Delete everything
+          this.db.allDocs().then(function(docs) {
+            var update = [];
+            docs.rows.forEach(function(doc) {
+              update.push({_id: doc.id, _rev: doc.value.rev, _deleted: true});
+            });
+            return this.db.bulkDocs(update);
+          }.bind(this)).catch(function(e) {
+            console.log(e);
+          });
+          this.remoteDb = null;
         }
       },
 
@@ -78,7 +90,7 @@
       },
 
       listTraces: function() {
-        return this.db.allDocs().then(function(doc) {
+        return this.db.query('types/traces').then(function(doc) {
           return doc.rows.map(function(x) {
             return x.id;
           });

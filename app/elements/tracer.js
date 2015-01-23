@@ -19,20 +19,26 @@
 
   TR.Trace = function(param) {
 
+    // New
     this.construct1 = function() {
-      this.id = Date.now() + '';
+      this.id = 'trace_' + Date.now();
+      this.date = Date.now() + '';
       this.positions = [];
-    }
+    };
 
+    // From DB
     this.construct2 = function(dbTrace) {
       this.id = dbTrace._id;
+      this.date = dbTrace.date;
       this.positions = dbTrace.positions;
-    }
+    };
 
+    // Copy
     this.construct3 = function(trace) {
       this.id = trace.id;
+      this.date = trace.date;
       this.positions = trace.positions;
-    }
+    };
 
     if (param === undefined) {
       this.construct1();
@@ -64,7 +70,9 @@
     toDb: function() {
       return {
         _id: this.id,
-        positions: this.positions
+        positions: this.positions,
+        date: this.date,
+        type: 'trace'
       }
     }
   };

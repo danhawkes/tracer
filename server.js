@@ -93,7 +93,7 @@ function authenticateUser(username, password, callback) {
 }
 
 function createUser(username, password, callback) {
-  var db = calcDbNameFromUsername(username);
+  var dbName = calcDbNameFromUsername(username);
   request.put({
     uri: dbServer.protocol + '://' + dbServer.domain + ':' + dbServer.port + '/_users/org.couchdb.user:' + username,
     auth: {

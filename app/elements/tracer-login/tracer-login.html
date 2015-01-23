@@ -18,16 +18,17 @@
       <div layout vertical>
         <paper-input-decorator label="Username" floatingLabel="true" isInvalid="{{usernameInvalid}}"
                                error="{{usernameError}}">
-          <input id="usernameInput" is="core-input" value="testuser1">
+          <input id="usernameInput" is="core-input" value="ccc">
         </paper-input-decorator>
         <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordInvalid}}"
                                error="{{passwordError}}">
-          <input id="passwordInput" is="core-input" value="password1">
+          <input id="passwordInput" is="core-input" value="ccc">
         </paper-input-decorator>
       </div>
 
       <paper-button dismissive>CANCEL</paper-button>
-      <paper-button affirmative on-tap="{{login}}">SUBMIT</paper-button>
+      <paper-button affirmative on-tap="{{register}}">REGISTER</paper-button>
+      <paper-button affirmative on-tap="{{login}}">LOGIN</paper-button>
 
 
     </paper-action-dialog>
@@ -77,6 +78,14 @@
         this.usernameInvalid = false;
       },
 
+      register: function() {
+        var username = this.cleanInputValue(this.$.usernameInput.value);
+        var password = this.cleanInputValue(this.$.passwordInput.value);
+        this.$.account.register(username, password).then(function(e) {
+          this.store.user = e;
+        }.bind(this));
+      },
+
       login: function() {
         var username = this.cleanInputValue(this.$.usernameInput.value);
         var password = this.cleanInputValue(this.$.passwordInput.value);
@@ -84,6 +93,7 @@
           this.store.user = e;
         }.bind(this));
       },
+
 
       showLoginError: function(statusCode) {
         var message;

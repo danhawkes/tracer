@@ -19,6 +19,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../../bower_components/app-router/app-router.html">
 
 <polymer-element name="tracer-app" layout>
@@ -37,30 +38,38 @@
     <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
     <paper-toast id="demoModeToast"></paper-toast>
 
-    <core-drawer-panel id="drawer" narrow="{{narrow}}">
+    <core-drawer-panel id="drawer" forceNarrow="false">
       <core-header-panel id="drawerPanel" drawer mode="seamed">
-        <core-toolbar id="drawerToolbar">
-          <div hidden?="{{narrow}}">Tracer</div>
+        <core-toolbar id="drawerToolbar" class="tall">
+          <paper-button on-tap="{{toggleLogin}}" class="bottom fit userStatus" layout horizontal>
+            <template if="{{store.user}}" class="bottom indent">
+              <div flex>{{store.user.username}}</div>
+            </template>
+            <template if="{{!store.user}}" class="bottom indent">
+              <div flex>Login</div>
+              <div>+</div>
+            </template>
+          </paper-button>
         </core-toolbar>
         <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
           <template repeat="{{menuItems}}">
             <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
           </template>
         </core-menu>
+        <tracer-menuitem label="login" on-tap="{{showLoginDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="logout" on-tap="{{logout}}"></tracer-menuitem>
         <tracer-menuitem label="Install" on-tap="{{installApp}}"
                          hidden?="{{!installable}}"></tracer-menuitem>
         <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
-        <tracer-menuitem label="Login" on-tap="{{showLoginDialog}}"></tracer-menuitem>
-        <tracer-menuitem label="{{store.user.username}}"></tracer-menuitem>
         <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
       </core-header-panel>
 
       <core-header-panel main id="contentPanel">
         <core-toolbar id="mainToolbar">
-          <paper-icon-button icon="menu" hidden?="{{!narrow}}" on-tap="{{toggleDrawer}}"></paper-icon-button>
-          <div hidden?="{{!narrow}}">{{pageTitle}}</div>
+          <paper-icon-button icon="menu" on-tap="{{toggleDrawer}}"></paper-icon-button>
+          <div>{{pageTitle}}</div>
           <div flex></div>
-          <paper-icon-button icon="refresh" hidden?="{{selectedPageIndex != 1}}"
+          <paper-icon-button icon="refresh" hidden?="{{(selectedPageIndex != 1) || (store.user === null)}}"
                              on-tap="{{sync}}"></paper-icon-button>
         </core-toolbar>
         <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
@@ -163,6 +172,14 @@
       showLoginDialog: function() {
         this.$.drawer.closeDrawer();
         this.$.loginDialog.show();
+      },
+
+      toggleLogin: function() {
+        if (this.store.user !== null) {
+          this.store.user = null;
+        } else {
+          this.showLoginDialog();
+        }
       },
 
       showAboutDialog: function() {
