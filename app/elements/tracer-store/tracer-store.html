@@ -25,6 +25,7 @@
       },
 
       created: function() {
+        console.log('store created');
         this.dbVersion = 5;
         this.db = new PouchDB('local');
 
@@ -37,6 +38,10 @@
         }.bind(this)).catch(function(e) {
           console.log(e);
         });
+      },
+
+      ready: function() {
+        console.log('store ready');
       },
 
       _upgradeSchema: function() {
