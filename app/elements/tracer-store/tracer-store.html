@@ -25,9 +25,75 @@
       },
 
       created: function() {
+        this.dbVersion = 5;
         this.db = new PouchDB('local');
-        this.db.get('user').then(function(doc) {
-          this.user = doc;
+
+        this._upgradeSchema().then(function() {
+          return this.db.get('user').then(function(doc) {
+            this.user = doc;
+          }.bind(this)).catch(function() {
+            // No user logged in
+          });
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
+      },
+
+      _upgradeSchema: function() {
+        console.log('checking for new schema');
+        return this.db.get('version').then(function(doc) {
+
+          console.log('found existing version');
+          if (doc.version !== this.dbVersion) {
+            console.log('version does not match');
+
+            return this._deleteAllDocs().then(function() {
+              return this._createDesignDocs();
+            }.bind(this));
+
+          } else {
+            return 'aaa';
+          }
+        }.bind(this)).catch(function() {
+          console.log('did not find existing version');
+          return this._createDesignDocs();
+        }.bind(this));
+      },
+
+      _createDesignDocs: function() {
+        console.log('creating design docs');
+        return this.db.bulkDocs([{
+          _id: '_design/all',
+          language: 'javascript',
+          views: {
+            traces: {
+              map: String(function(doc) {
+                if ('trace' == doc.type) {
+                  emit(doc._id, doc);
+                }
+              })
+            },
+            tracesSummary: {
+              map: String(function(doc) {
+                if ('trace' == doc.type) {
+                  emit(doc._id, {title: doc.title, date: doc.date})
+                }
+              })
+            }
+          }
+        }, {
+          _id: 'version',
+          version: this.dbVersion
+        }]);
+      },
+
+      _deleteAllDocs: function() {
+        return this.db.allDocs().then(function(docs) {
+          var update = [];
+          docs.rows.forEach(function(doc) {
+            update.push({_id: doc.id, _rev: doc.value.rev, _deleted: true});
+          });
+          return this.db.bulkDocs(update);
         }.bind(this));
       },
 
@@ -44,13 +110,7 @@
           });
         } else {
           // Delete everything
-          this.db.allDocs().then(function(docs) {
-            var update = [];
-            docs.rows.forEach(function(doc) {
-              update.push({_id: doc.id, _rev: doc.value.rev, _deleted: true});
-            });
-            return this.db.bulkDocs(update);
-          }.bind(this)).catch(function(e) {
+          this._deleteAllDocs().catch(function(e) {
             console.log(e);
           });
           this.remoteDb = null;
@@ -90,17 +150,21 @@
       },
 
       listTraces: function() {
-        return this.db.query('types/traces').then(function(doc) {
+        return this.db.query('all/tracesSummary').then(function(doc) {
           return doc.rows.map(function(x) {
-            return x.id;
+            return new TR.Trace(x);
           });
+        }).catch(function() {
+          return [];
         });
       },
 
       loadTrace: function(id) {
         return this.db.get(id).then(function(doc) {
           return new TR.Trace(doc);
-        });
+        }).catch(function(err) {
+          console.log(err);
+        });;
       }
     });
   </script>

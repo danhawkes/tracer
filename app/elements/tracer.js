@@ -21,28 +21,34 @@
 
     // New
     this.construct1 = function() {
-      this.id = 'trace_' + Date.now();
-      this.date = Date.now() + '';
+      var now = Date.now();
+      this._id = 'trace_' + now;
+      this.date = now;
+      this.title = this.date + '';
       this.positions = [];
+      this.type = 'trace';
     };
 
-    // From DB
-    this.construct2 = function(dbTrace) {
-      this.id = dbTrace._id;
-      this.date = dbTrace.date;
-      this.positions = dbTrace.positions;
+    // From DB map
+    this.construct2 = function(dbItem) {
+      this._id = dbItem.id;
+      this.date = dbItem.value.date;
+      this.title = dbItem.value.title;
+      this.type = 'trace';
     };
 
     // Copy
     this.construct3 = function(trace) {
-      this.id = trace.id;
+      this._id = trace._id;
       this.date = trace.date;
+      this.title = trace.title;
       this.positions = trace.positions;
+      this.type = 'trace';
     };
 
     if (param === undefined) {
       this.construct1();
-    } else if (param._id !== undefined) {
+    } else if (param.id !== undefined) {
       this.construct2(param);
     } else {
       this.construct3(param);
@@ -69,10 +75,11 @@
 
     toDb: function() {
       return {
-        _id: this.id,
-        positions: this.positions,
+        _id: this._id,
         date: this.date,
-        type: 'trace'
+        title: this.title,
+        positions: this.positions,
+        type: this.type
       }
     }
   };

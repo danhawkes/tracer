@@ -34,7 +34,7 @@
               <div fit>
                 <core-selector selected="{{selectedTraceIndex}}" selectedAttribute="">
                   <template repeat="{{item in items}}">
-                    <paper-item>{{item | formatDate}}</paper-item>
+                    <paper-item>{{item.date | formatDate}}</paper-item>
                   </template>
                 </core-selector>
               </div>
@@ -88,6 +88,10 @@
         }
       },
 
+      storeChanged: function() {
+        console.log('sdfsdf');
+      },
+
       itemsChanged: function() {
         if (this.items.length === 0) {
           // Select none if list is now empty
@@ -97,13 +101,13 @@
           this.selectedTraceIndex = 0;
         } else {
           // Selection is still valid, but data is stale. Reload trace.
-          this.loadTrace(this.items[this.selectedTraceIndex]);
+          this.loadTrace(this.items[this.selectedTraceIndex]._id);
         }
       },
 
       selectedTraceIndexChanged: function() {
         if (this.selectedTraceIndex >= 0) {
-          this.loadTrace(this.items[this.selectedTraceIndex]);
+          this.loadTrace(this.items[this.selectedTraceIndex]._id);
         } else {
           this.trace = null;
         }
@@ -130,8 +134,8 @@
         });
       },
 
-      formatDate: function(timestamp) {
-        return new Date(Number(timestamp)).toLocaleDateString('en', {
+      formatDate: function(date) {
+        return new Date(date).toLocaleDateString('en', {
           hour12: true,
           minute: 'numeric',
           hour: 'numeric',
