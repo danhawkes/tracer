@@ -22,6 +22,10 @@
 <link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../../bower_components/app-router/app-router.html">
 
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="../../bower_components/trianglify/trianglify.min.js"></script>
+
 <polymer-element name="tracer-app" layout>
 
   <template>
@@ -38,7 +42,7 @@
     <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
     <paper-toast id="demoModeToast"></paper-toast>
 
-    <core-drawer-panel id="drawer" forceNarrow="false">
+    <core-drawer-panel id="drawer" narrow="{{narrow}}">
       <core-header-panel id="drawerPanel" drawer mode="seamed">
         <core-toolbar id="drawerToolbar" class="tall">
           <paper-button on-tap="{{toggleLogin}}" class="bottom fit userStatus" layout horizontal>
@@ -64,7 +68,7 @@
 
       <core-header-panel main id="contentPanel">
         <core-toolbar id="mainToolbar">
-          <paper-icon-button icon="menu" on-tap="{{toggleDrawer}}"></paper-icon-button>
+          <paper-icon-button icon="menu" on-tap="{{toggleDrawer}}" hidden?="{{!narrow}}"></paper-icon-button>
           <div>{{pageTitle}}</div>
           <div flex></div>
           <paper-icon-button icon="refresh" hidden?="{{store.user === null}}"
@@ -108,6 +112,12 @@
         this.store.addEventListener('sync-error', function(e) {
           this.showSyncErrorToast();
         }.bind(this));
+
+        var grad = ['#fbc02d', '#ffeb3b'];
+        var t = new Trianglify({noiseIntensity: 0.2, x_gradient: grad, y_grad: grad});
+        var elem = this.$.drawerToolbar;
+        var pattern = t.generate(elem.clientWidth, elem.clientHeight);
+        elem.setAttribute('style', 'background-image: ' + pattern.dataUrl);
       },
 
       onMenuItemSelected: function(e, detail) {

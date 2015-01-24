@@ -7,7 +7,8 @@
     "polymer": "Polymer/polymer#^0.5.0",
     "leaflet": "~0.7.3",
     "pouchdb": "~3.2.0",
-    "app-router": "~2.3.2"
+    "app-router": "~2.3.2",
+    "trianglify": "~0.1.5"
   },
   "devDependencies": {
     "polymer-test-tools": "Polymer/polymer-test-tools#^0.5.0"
