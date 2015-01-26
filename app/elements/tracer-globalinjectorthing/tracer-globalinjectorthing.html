@@ -4,15 +4,22 @@
   <script>
     (function() {
 
-      var store = document.createElement('tracer-store');
+      var store = null;
+
+      var getStore = function() {
+        if (store === null) {
+          store = document.createElement('tracer-store');
+        }
+        return store;
+      };
 
       Polymer({
         publish: {
           store: null
         },
 
-        ready: function() {
-          this.store = store;
+        created: function() {
+          this.store = getStore();
         }
       });
     })();

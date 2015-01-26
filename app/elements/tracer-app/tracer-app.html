@@ -67,7 +67,7 @@
           <paper-icon-button icon="menu" on-tap="{{toggleDrawer}}" hidden?="{{!narrow}}"></paper-icon-button>
           <div>{{pageTitle}}</div>
           <div flex></div>
-          <paper-icon-button icon="refresh" hidden?="{{store.user === null}}"
+          <paper-icon-button icon="refresh" hidden?="{{!store.user}}"
                              on-tap="{{sync}}"></paper-icon-button>
         </core-toolbar>
         <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
