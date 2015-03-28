@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+#summaryPage, #detailPage {
+  background: #f0f0f0;
+  margin-bottom: 16px;
+}
+
+#summaryPage paper-fab, #detailPage paper-fab {
+  position: absolute;
+  background: #ffeb3b;
+  right: 32px;
+  bottom: 32px;
+  color: black;
+}
+
+.card {
+  background: white;
+  border-radius: 3px;
+  margin: 16px 16px 0 16px;
+}
+
+#summaryMapCard {
+  height: 192px;
+}
+
+#summaryListCard {
+  padding: 16px;
+}
+
+#detailMetricsCard {
+  margin-top: 80px;
+  padding: 16px;
+}
+
+#summaryListCard > div {
+  overflow-y: scroll;
+}
+
+#detailPage core-toolbar {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+#detailPage core-toolbar paper-tabs {
+  height: 100%;
+  max-width: 256px;
+}
+
+#detailPage core-toolbar paper-tabs::shadow #selectionBar {
+  background-color: #ffeb3b;
+}
+
+#detailPage core-toolbar paper-tabs paper-tab::shadow #ink {
+  color: #ffeb3b;
+}
+
+
+
+

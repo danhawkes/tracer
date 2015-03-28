@@ -1,0 +1,195 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script src="../../bower_components/leaflet/dist/leaflet.js"></script>
+
+<polymer-element name="tracer-map" touch-action="none">
+
+  <template>
+
+    <link rel="stylesheet" href="tracer-map.css">
+    <link rel="stylesheet" href="../../bower_components/leaflet/dist/leaflet.css">
+
+    <div id="map"></div>
+
+    <content></content>
+
+  </template>
+
+  <script>
+    (function() {
+
+      var DEFAULT_POSITION = {
+        // London
+        lat: 51.5064,
+        lng: -0.1132
+      };
+
+      Polymer({
+        publish: {
+
+          /**
+           * Point at which to draw a dot to indicate the current position.
+           * @attribute
+           * @type Object
+           * @default null
+           */
+          marker: null,
+
+          /**
+           * Array of positions to draw as a polyline.
+           * @attribute
+           * @type Array
+           * @default An empty array.
+           */
+          path: [],
+
+          /**
+           * Whether to move/zoom the map to keep the current position marker in the centre. This attribute is
+           * automatically set to false when the user scrolls or zooms the map away from the current position.
+           * @attribute
+           * @type boolean
+           * @default false
+           */
+          follow: false,
+
+          /**
+           * Whether to move and zoom the map to keep the entire path in-view. This attribute is automatically
+           * set to false when the user scrolls or zooms the map away from the current position.
+           * @attribute
+           * @type boolean
+           * @default false
+           */
+          showPath: false
+        },
+
+        created: function() {
+          this.zoom = 15;
+          this.pathLine = null;
+          this.pathLayer = null;
+          this.markerLayer = null;
+          this.ignoreEvents = false;
+        },
+
+        domReady: function() {
+          var tileServer =
+            'https://api.tiles.mapbox.com/v4/wp9teybew8py.kl4mno0n/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoid3A5dGV5YmV3OHB5IiwiYSI6IjE3c280Um8ifQ.jEb48IVsyLQWS58QOR_nQA';
+          var tileLayer = L.tileLayer(tileServer, {
+            detectRetina: true
+          });
+
+          this.map = L.map(this.$.map, {
+            center: this.marker ? L.latLng(this.marker.lat, this.marker.lng) : DEFAULT_POSITION,
+            zoom: this.zoom,
+            layers: [tileLayer],
+            attributionControl: false,
+            zoomControl: false
+          });
+
+          this.map.on('zoomstart', function(event) {
+            if (!this.ignoreEvents) {
+              this.follow = false;
+              this.showPath = false;
+            }
+          }.bind(this));
+
+          this.map.on('dragstart', function(event) {
+            if (!this.ignoreEvents) {
+              this.follow = false;
+              this.showPath = false;
+            }
+          }.bind(this));
+        },
+
+        updateSize: function() {
+          this.map.invalidateSize();
+          if (this.showPath) {
+            this.setMapToShowPath();
+          } else if (this.follow) {
+            this.setMapToCurrentPosition();
+          }
+        },
+
+        markerChanged: function(oldPos, newPos) {
+          this.updateDisplayedMarker(newPos);
+          if (newPos && this.follow) {
+            this.setMapToCurrentPosition();
+          }
+        },
+
+        pathChanged: function(oldPath, path) {
+          // TODO: 'path' is often undefined here because of some race condition
+          // around array mutation. Waiting a few milliseconds is a workaround
+          // to ensure the mutation has finished.
+          setTimeout(function() {
+            this.updateDisplayedPath(this.path);
+            if (this.showPath) {
+              this.setMapToShowPath();
+            }
+          }.bind(this), 10);
+        },
+
+        followChanged: function(oldValue, newValue) {
+          if (newValue && this.marker) {
+            this.setMapToCurrentPosition();
+          }
+        },
+
+        showPathChanged: function(oldValue, newValue) {
+          if (newValue && this.path && this.path.length > 0) {
+            this.setMapToShowPath();
+          }
+        },
+
+        updateDisplayedPath: function(path) {
+          if (this.pathLayer) {
+            this.map.removeLayer(this.pathLayer);
+            this.pathLayer = null;
+          }
+          if (path && (path.length > 0)) {
+            this.pathLine = L.polyline(path, {
+              color: '#ffeb3b',
+              opacity: 1.0
+            });
+            this.pathLayer = this.pathLine.addTo(this.map);
+          }
+        },
+
+        updateDisplayedMarker: function(marker) {
+          if (this.markerLayer) {
+            this.map.removeLayer(this.markerLayer);
+            this.markerLayer = null;
+          }
+          if (marker) {
+            this.markerLayer = L.marker(marker, {
+              icon: L.divIcon({
+                className: 'center-icon'
+              })
+            }).addTo(this.map);
+          }
+        },
+
+        setMapToCurrentPosition: function() {
+          this.ignoreEventsForTimeout();
+          this.map.setView(L.latLng(this.marker.lat, this.marker.lng), 16, {
+            animate: true
+          });
+        },
+
+        setMapToShowPath: function() {
+          if (this.pathLine) {
+            this.ignoreEventsForTimeout();
+            this.map.fitBounds(this.pathLine.getBounds());
+          }
+        },
+
+        ignoreEventsForTimeout: function() {
+          this.ignoreEvents = true;
+          setTimeout(function() {
+            this.ignoreEvents = false;
+          }.bind(this), 500);
+        }
+      });
+    })
+    ();
+  </script>
+</polymer-element>

@@ -1,0 +1,89 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/core-icons/maps-icons.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+
+<polymer-element name="tracer-recordpage">
+  <template>
+    <link rel="stylesheet" href="tracer-recordpage.css">
+
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
+
+    <tracer-location id="location" enabled="{{recording}}"
+                     on-slowlock="{{showWaitingForLocationToast}}"
+                     on-position="{{onNewLocation}}"></tracer-location>
+
+    <paper-toast id="waitingForLocationToast" text="Waiting for location…"></paper-toast>
+    <paper-toast id="willNotSaveTraceToast" text="Trace will not be saved as it is too short"
+                 duration="6000"></paper-toast>
+
+    <tracer-map id="map" fit></tracer-map>
+
+    <div id="action-buttons" layout vertical>
+      <paper-fab id="fab-startstop" icon="maps:my-location" on-click="{{showLocation}}"></paper-fab>
+      <paper-fab id="fab-locate" icon="{{recording ? 'av:stop' : 'av:play-arrow'}}"
+                 on-click="{{toggleRecording}}"></paper-fab>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      publish: {
+        demoMode: false
+      },
+
+      created: function() {
+        this.recording = false;
+        this.trace = null;
+      },
+
+      updateSize: function() {
+        this.$.map.updateSize();
+      },
+
+      toggleRecording: function() {
+        if (this.recording) {
+          this.$.location.ongoing = false;
+          if (this.trace.positions.length >= 5) {
+            this.store.saveTrace(this.trace);
+          } else {
+            this.$.willNotSaveTraceToast.show();
+          }
+          this.trace = null;
+        } else {
+          this.trace = new TR.Trace();
+          this.$.location.ongoing = true;
+          this.$.map.follow = true;
+        }
+        this.recording = !this.recording;
+      },
+
+      showWaitingForLocationToast: function() {
+        this.$.waitingForLocationToast.show();
+      },
+
+      showLocation: function() {
+        this.$.map.follow = true;
+        if (!this.recording) {
+          this.$.location.oneShot();
+        }
+      },
+
+      onNewLocation: function(event) {
+        var position = event.detail;
+        this.$.map.marker = position;
+        if (this.recording) {
+          this.trace.appendPosition(position);
+          this.$.map.path = this.trace.positions;
+        }
+      },
+
+      demoModeChanged: function() {
+        this.$.location.demoMode = this.demoMode;
+      }
+
+    });
+  </script>
+</polymer-element>

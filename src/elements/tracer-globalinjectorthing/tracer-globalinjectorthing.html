@@ -1,0 +1,27 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="tracer-globalinjectorthing">
+  <script>
+    (function() {
+
+      var store = null;
+
+      var getStore = function() {
+        if (store === null) {
+          store = document.createElement('tracer-store');
+        }
+        return store;
+      };
+
+      Polymer({
+        publish: {
+          store: null
+        },
+
+        created: function() {
+          this.store = getStore();
+        }
+      });
+    })();
+  </script>
+</polymer-element>

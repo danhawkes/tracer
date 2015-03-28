@@ -1,0 +1,191 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../bower_components/core-scaffold/core-scaffold.html">
+<link rel="import" href="../../bower_components/core-icon-button/core-icon-button.html">
+<link rel="import" href="../../bower_components/core-transition/core-transition.html">
+<link rel="import" href="../../bower_components/core-icons/core-icons.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/core-icons/av-icons.html">
+<link rel="import" href="../../bower_components/core-menu/core-menu.html">
+<link rel="import" href="../../bower_components/core-drawer-panel/core-drawer-panel.html">
+<link rel="import" href="../../bower_components/core-item/core-item.html">
+<link rel="import" href="../../bower_components/core-list/core-list.html">
+<link rel="import" href="../../bower_components/core-animated-pages/core-animated-pages.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
+
+<polymer-element name="tracer-app" layout>
+
+  <template>
+    <link rel="stylesheet" href="tracer-app.css" shim-shadowdom>
+
+    <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
+
+    <tracer-login id="loginDialog"></tracer-login>
+    <tracer-about id="aboutDialog"></tracer-about>
+
+    <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
+    <paper-toast id="syncStartedToast" text="Synchronising…"></paper-toast>
+    <paper-toast id="syncCompletedToast" text="Traces are up to date."></paper-toast>
+    <paper-toast id="syncErrorToast" text="Refresh failed. Showing limited traces."></paper-toast>
+    <paper-toast id="demoModeToast"></paper-toast>
+
+    <core-drawer-panel id="drawer" narrow="{{narrow}}">
+      <core-header-panel id="drawerPanel" drawer mode="seamed">
+        <core-toolbar id="drawerToolbar" class="tall">
+          <paper-button on-tap="{{showLoginPage}}" class="bottom fit userStatus" layout horizontal>
+            <template if="{{store.user}}" class="bottom indent">
+              <div flex>{{store.user.username}}</div>
+            </template>
+            <template if="{{!store.user}}" class="bottom indent">
+              <div>LOG IN</div>
+            </template>
+          </paper-button>
+        </core-toolbar>
+        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
+          <template repeat="{{menuItems}}">
+            <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
+          </template>
+        </core-menu>
+        <tracer-menuitem label="Install" on-tap="{{installApp}}"
+                         hidden?="{{!installable}}"></tracer-menuitem>
+        <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
+        <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
+      </core-header-panel>
+
+      <core-header-panel main id="contentPanel">
+        <core-toolbar id="mainToolbar">
+          <paper-icon-button icon="menu" on-tap="{{toggleDrawer}}" hidden?="{{!narrow}}"></paper-icon-button>
+          <div>{{pageTitle}}</div>
+          <div flex></div>
+          <paper-icon-button icon="refresh" hidden?="{{!store.user}}"
+                             on-tap="{{sync}}"></paper-icon-button>
+        </core-toolbar>
+        <core-animated-pages id="pages" selected="{{selectedPageIndex}}"
+                             transitions="hero-transition cross-fade"
+                             on-core-animated-pages-transition-prepare="{{onAnimatedPagePrepare}}" fit>
+          <section>
+            <tracer-recordpage id="recordPage" sizeable fit cross-fade></tracer-recordpage>
+          </section>
+          <section>
+            <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade></tracer-traceslistpage>
+          </section>
+          <section>
+            <tracer-loginpage id="tracesLoginPage" fit cross-fade></tracer-loginpage>
+          </section>
+        </core-animated-pages>
+      </core-header-panel>
+    </core-drawer-panel>
+
+  </template>
+
+  <script>
+    Polymer({
+      created: function() {
+        this.menuItems = [
+          {name: 'Record', pageTitle: 'Tracer', icon: 'av:play-arrow'},
+          {name: 'My Traces', pageTitle: 'My Traces', icon: 'polymer'}
+        ];
+        this.manifestUrl = location.origin + '/manifest.webapp';
+        this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
+        this.installable = false;
+        this.pageTitle = this.menuItems[0].pageTitle;
+
+        this.updateInstallButtonVisibility();
+      },
+
+      ready: function() {
+        this.store.addEventListener('sync-complete', function(e) {
+          this.showSyncCompletedToast();
+        }.bind(this));
+
+        this.store.addEventListener('sync-error', function(e) {
+          this.showSyncErrorToast();
+        }.bind(this));
+
+      },
+
+      onMenuItemSelected: function(e, detail) {
+        if (detail.isSelected) {
+          this.selectedPageIndex = this.$.menu.selected;
+          this.pageTitle = this.menuItems[this.selectedPageIndex].pageTitle;
+          this.$.drawer.closeDrawer();
+        }
+      },
+
+      onAnimatedPagePrepare: function(e, detail) {
+        var sizeableElem = this.$.pages.selectedItem.querySelector('[sizeable]');
+        if (sizeableElem) {
+          sizeableElem.updateSize();
+        }
+      },
+
+      installApp: function() {
+        this.$.drawer.closeDrawer();
+        var asPackage = false;
+        var apps = navigator.mozApps;
+        var installLocFind = asPackage ? apps.installPackage(this.packageManifestUrl) : apps.install(this.manifestUrl);
+        installLocFind.onsuccess = function(data) {
+          this.installable = false;
+        }.bind(this);
+        installLocFind.onerror = function() {
+          alert(installLocFind.error.name);
+        };
+      },
+
+      toggleDrawer: function() {
+        this.$.drawer.togglePanel();
+      },
+
+      updateInstallButtonVisibility: function() {
+        if ((location.protocol !== 'app:') && ('mozApps' in navigator)) {
+          var request = navigator.mozApps.checkInstalled(this.manifestUrl)
+          request.onsuccess = function(e) {
+            this.installable = !request.result;
+          }.bind(this);
+          request.onerror = function(e) {
+            alert(e);
+          }.bind(this);
+        }
+      },
+
+      sync: function() {
+        this.store.sync();
+        this.$.syncStartedToast.show();
+      },
+
+      showSyncCompletedToast: function() {
+        this.$.syncCompletedToast.show();
+      },
+
+      showSyncErrorToast: function() {
+        this.$.syncCompletedToast.show();
+      },
+
+      showLoginPage: function() {
+        this.$.drawer.closeDrawer();
+        this.$.menu.selected = -1;
+        this.selectedPageIndex = 2;
+      },
+
+      showAboutDialog: function() {
+        this.$.drawer.closeDrawer();
+        this.$.aboutDialog.show();
+      },
+
+      toggleDemoMode: function() {
+        var page = this.$.recordPage;
+        page.demoMode = !page.demoMode;
+        this.$.demoModeToast.text = 'Demo mode ' + (page.demoMode ? 'on' : 'off');
+        this.$.demoModeToast.show();
+      }
+    });
+  </script>
+</polymer-element>
