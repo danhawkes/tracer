@@ -1,6 +1,6 @@
 {
-  "name": "Tracer",
-  "description": "Record where you've been, and upload tracks to other services.",
+  "name": "tracer-app",
+  "description": "GPS logger app for mobile devices.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
@@ -17,21 +17,21 @@
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-autoprefixer": "^2.1.0",
     "gulp-filter": "^2.0.2",
+    "gulp-frep": "^0.1.3",
     "gulp-imagemin": "^2.2.1",
     "gulp-load-plugins": "^0.9.0",
-    "gulp-merge": "^0.1.0",
     "gulp-minify-css": "^1.0.0",
     "gulp-minify-html": "^1.0.1",
-    "gulp-renvy": "0.0.3",
     "gulp-vulcanize": "^5.0.0",
     "merge-stream": "^0.1.7",
     "minimist": "^1.1.1"
   },
   "scripts": {
-    "prepublish": "./node_modules/bower/bin/bower install --production --interactive=false && ./node_modules/.bin/gulp build"
+    "install": "./node_modules/bower/bin/bower install --production --interactive=false && ./node_modules/.bin/gulp build"
   },
   "engines": {
-    "node": "^0.10.0"
+    "node": "0.12.x",
+    "npm": "2.x"
   },
   "firefoxManifest": {
     "launch_path": "/index.html",

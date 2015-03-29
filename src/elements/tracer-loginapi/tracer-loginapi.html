@@ -16,9 +16,9 @@
 
         return new Promise(function(resolve, reject) {
 
-          var protocol = 'ENV_WEB_PROTOCOL';
-          var port = 'ENV_WEB_PORT';
-          var host = 'ENV_WEB_HOST';
+          var protocol = 'CONFIG_WEB_PROTOCOL';
+          var host = 'CONFIG_WEB_HOST';
+          var port = 'CONFIG_WEB_PORT';
 
           var req = new XMLHttpRequest();
           req.open('POST', protocol + '://' + host + ':' + port + '/' + path, true);

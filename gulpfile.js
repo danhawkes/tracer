@@ -1,26 +1,18 @@
 var gulp = require('gulp'),
   $ = require('gulp-load-plugins')(),
   del = require('del'),
+  merge = require('merge-stream'),
   minimist = require('minimist'),
-  browserSync = require('browser-sync');
+  browserSync = require('browser-sync'),
+  config = require('./gulpconfig');
 
 var SRC = 'src',
   DST = 'build';
 
 var args = minimist(process.argv.slice(2), {
-  strings: ['env'],
-  default: {'env': 'prod'}
+  boolean: ['debug'],
+  default: {'debug': false}
 });
-
-var config = {
-  'ENV_WEB_PROTOCOL': {'dev': 'http', 'prod': 'https'},
-  'ENV_WEB_PORT': {'dev': 9001, 'prod': 9002},
-  'ENV_WEB_HOST': {'dev': 'localhost', 'prod': 'tracer.arcs.co'},
-  'ENV_DB_PROTOCOL': {'dev': 'http', 'prod': 'https'},
-  'ENV_DB_PORT': {'dev': 5984, 'prod': 5984},
-  'ENV_DB_HOST': {'dev': 'localhost', 'prod': 'tracer-db.arcs.co'}
-};
-
 
 function clean(done) {
   return del(DST, done);
@@ -54,9 +46,9 @@ function src_index() {
 }
 function src_elements() {
   var dest = DST + '/elements';
-  if (args.env === 'prod') {
+  if (!args.debug) {
     // Vulcanise
-    return require('merge-stream')(
+    return merge(
       gulp.src(SRC + '/elements/**/*.{html,js}')
         .pipe($.filter('elements.html'))
         .pipe($.vulcanize({
@@ -65,8 +57,9 @@ function src_elements() {
           csp: true,
           inline: true
         }))
-        // Have to replace after vulcanisation as vulcanise seems to reference original files, not those in stream.
-        .pipe($.renvy(config, args.env))
+        // Have to replace after vulcanisation as vulcanise seems to reference original files, not those in
+        // stream.
+        .pipe($.frep(config))
         .pipe(gulp.dest(dest)),
       gulp.src(SRC + '/elements/**/*.!(html|css|js)')
         // Vulcanize screws up resource paths for some reason, so transpose them to match.
@@ -74,8 +67,11 @@ function src_elements() {
     );
   } else {
     // Just copy sources
+    var forGrep = $.filter('**/*.{html,css,js}');
     return gulp.src(SRC + '/elements/**/*')
-      //.pipe($.renvy(config, args.env))
+      .pipe(forGrep)
+      .pipe($.frep(config))
+      .pipe(forGrep.restore())
       .pipe(gulp.dest(dest));
   }
 }
