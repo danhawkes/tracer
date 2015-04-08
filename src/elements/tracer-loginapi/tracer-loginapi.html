@@ -16,12 +16,8 @@
 
         return new Promise(function(resolve, reject) {
 
-          var protocol = 'CONFIG_WEB_PROTOCOL';
-          var host = 'CONFIG_WEB_HOST';
-          var port = 'CONFIG_WEB_PORT';
-
           var req = new XMLHttpRequest();
-          req.open('POST', protocol + '://' + host + ':' + port + '/' + path, true);
+          req.open('POST', 'CONFIG_WEB_URL' + '/' + path, true);
           req.responseType = 'json';
           req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
           req.onload = function(e) {
