@@ -30,11 +30,10 @@
         this.db = new PouchDB('local');
 
         this._upgradeSchema().then(function() {
-          return this.db.get('user').then(function(doc) {
-            this.user = doc;
-          }.bind(this)).catch(function() {
-            // No user logged in
-          });
+          var user = window.localStorage.getItem('user');
+          if (user) {
+            this.user = JSON.parse(user);
+          }
         }.bind(this)).catch(function(e) {
           console.log(e);
         });
@@ -104,11 +103,9 @@
 
       userChanged: function(oldValue, newValue) {
         if (this.user !== null) {
-          this.db.put(this.user, 'user').catch(function(e) {
-            console.log(e);
-          });
+          window.localStorage.setItem('user', JSON.stringify(this.user));
           this.remoteDb = new
-            PouchDB(this.user.dbUrl, {
+              PouchDB(this.user.dbUrl, {
             ajax: {
               cache: true
             },
@@ -118,6 +115,7 @@
             }
           });
         } else {
+          window.localStorage.removeItem('user');
           // Delete everything
           this._deleteAllDocs().catch(function(e) {
             console.log(e);
