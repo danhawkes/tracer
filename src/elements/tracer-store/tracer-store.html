@@ -101,32 +101,10 @@
         }.bind(this));
       },
 
-      userChanged: function(oldValue, newValue) {
-        if (this.user !== null) {
-          window.localStorage.setItem('user', JSON.stringify(this.user));
-          this.remoteDb = new
-              PouchDB(this.user.dbUrl, {
-            ajax: {
-              cache: true
-            },
-            auth: {
-              username: this.user.dbCredentials[0],
-              password: this.user.dbCredentials[1]
-            }
-          });
-        } else {
-          window.localStorage.removeItem('user');
-          // Delete everything
-          this._deleteAllDocs().catch(function(e) {
-            console.log(e);
-          });
-          this.remoteDb = null;
-        }
-      },
-
-      sync: function() {
-        PouchDB.sync(this.db, this.remoteDb, {
-          live: false
+      _startSync: function(ongoing) {
+        return PouchDB.replicate(this.db, this.remoteDb, {
+          live: ongoing,
+          retry: ongoing
         }).on('change', function(info) {
           console.log('PouchDB ' + (info.direction === 'pull' ? 'remote' : 'local') + ' modified');
           this.fire('modified');
@@ -138,6 +116,49 @@
           console.log(err);
           this.fire('sync-error', err);
         }.bind(this));
+      },
+
+      userChanged: function(oldValue, newValue) {
+        console.log('user changed: ' + oldValue + ' -> ' + newValue);
+
+        // Cancel any ongoing sync
+        if (this.ongoingSync) {
+          this.ongoingSync.cancel();
+          this.ongoingSync = null;
+        }
+
+        // Delete local DB
+        this._deleteAllDocs().then(function() {
+          this.fire('modified');
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
+        this.remoteDb = null;
+
+        // Delete localstorage data
+        window.localStorage.removeItem('user');
+
+        // If have user to replace previous one...
+        if (this.user !== null) {
+          // Store new user and set up new remote db
+          window.localStorage.setItem('user', JSON.stringify(this.user));
+          this.remoteDb = new
+              PouchDB(this.user.dbUrl, {
+            ajax: {
+              cache: true
+            },
+            auth: {
+              username: this.user.dbCredentials[0],
+              password: this.user.dbCredentials[1]
+            }
+          });
+          // Start replication
+          this.ongoingSync = this._startSync(true);
+        }
+      },
+
+      sync: function() {
+        this._startSync(false);
       },
 
       saveTrace: function(trace) {
