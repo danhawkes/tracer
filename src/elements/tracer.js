@@ -24,7 +24,14 @@
       var now = Date.now();
       this._id = 'trace_' + now;
       this.date = now;
-      this.title = this.date + '';
+      this.title = new Date(this.date).toLocaleDateString('en', {
+        hour12: true,
+        minute: 'numeric',
+        hour: 'numeric',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
       this.positions = [];
       this.type = 'trace';
     };

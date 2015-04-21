@@ -87,6 +87,9 @@ function serve() {
     server: {
       baseDir: DST
     },
+    ghostMode: false,
+    ui: false,
+    port: 80,
     open: false
   });
 }

@@ -34,7 +34,7 @@
               <div fit>
                 <core-selector selected="{{selectedTraceIndex}}" selectedAttribute="">
                   <template repeat="{{item in items}}">
-                    <paper-item>{{item.date | formatDate}}</paper-item>
+                    <paper-item>{{item.title}}</paper-item>
                   </template>
                 </core-selector>
               </div>
@@ -127,17 +127,6 @@
         }.bind(this)).catch(function(err) {
           console.print('error while listing traces:');
           console.print(err);
-        });
-      },
-
-      formatDate: function(date) {
-        return new Date(date).toLocaleDateString('en', {
-          hour12: true,
-          minute: 'numeric',
-          hour: 'numeric',
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
         });
       },
 

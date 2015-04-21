@@ -1,24 +1,48 @@
 :host {
-  display: block;
+    display: block;
 }
 
 :host .formCard {
-  padding: 16px;
+    padding: 16px;
 }
 
 :host .button {
-  margin-top: 16px;
-  background: #FFEB3B;
+    margin: 0;
+    text-align: left;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+:host .formTitle {
+    font-size: 24px;
+    margin: 24px 16px 0;
+}
+
+:host .formSubtitle {
+    margin: 4px 16px 0;
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 14px;
+}
+
+:host .formFields {
+    margin: 16px 16px 24px;
+}
+
+:host .divider {
+    height: 1px;
+    display: block;
+    background-color: rgba(0, 0, 0, 0.12);
 }
 
 :host .toggleFormButton {
-  text-transform: none;
+    margin: 16px 16px 24px 16px;
+    text-transform: none;
 }
 
 :host .roughlyCentered {
-  margin-top: 96px;
+    margin-top: 96px;
 }
 
 :host .busySpinner::shadow .circle {
-  border-color: black;
+    border-color: black;
 }
+

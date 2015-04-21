@@ -10,17 +10,19 @@
   <template>
 
     <link rel="stylesheet" href="tracer-loginpage.css">
-
-    <paper-input-decorator label="Email" floatingLabel="true" isInvalid="{{emailError}}"
-                           error="{{emailError}}">
-      <input id="emailInput" is="core-input" type="email" value="{{email}}">
-    </paper-input-decorator>
-    <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordError}}"
-                           error="{{passwordError}}">
-      <input id="passwordInput" is="core-input" type="password" value="{{password}}">
-    </paper-input-decorator>
+    <div class="formFields">
+      <paper-input-decorator label="Email" floatingLabel="true" isInvalid="{{emailError}}"
+                             error="{{emailError}}">
+        <input id="emailInput" is="core-input" type="email" value="{{email}}">
+      </paper-input-decorator>
+      <paper-input-decorator label="Password" floatingLabel="true" isInvalid="{{passwordError}}"
+                             error="{{passwordError}}">
+        <input id="passwordInput" is="core-input" type="password" value="{{password}}">
+      </paper-input-decorator>
+    </div>
+    <div class="divider"></div>
     <div layout vertical>
-      <paper-button on-tap="{{submit}}" class="button" raised>{{submitLabel}}</paper-button>
+      <paper-button on-tap="{{submit}}" class="button">{{submitLabel}}</paper-button>
     </div>
 
   </template>
@@ -85,12 +87,13 @@
 
     <div layout vertical fit>
 
-      <core-animated-pages id="formPages" selected="{{(store.user === null) ? selectedPageIndex : 2}}"
+      <core-animated-pages id="formPages" selected="{{selectedPageIndex}}"
                            transitions="cross-fade slide-from-bottom"
                            fit>
         <section>
           <tracer-card id="loginCard" class="formCard" layout vertical slide-from-bottom>
-            <tracer-loginform submitLabel="Login" on-tracer-loginform-submit="{{login}}"></tracer-loginform>
+            <div class="formTitle">Log in</div>
+            <tracer-loginform submitLabel="Log in" on-tracer-loginform-submit="{{login}}"></tracer-loginform>
           </tracer-card>
 
           <div layout horizontal center center-justified cross-fade>
@@ -100,17 +103,13 @@
 
         <section>
           <tracer-card id="registerCard" class="formCard" layout vertical slide-from-bottom>
+            <div class="formTitle">Register</div>
+            <div class="formSubtitle">Create an account to sync your traces across multiple devices.</div>
             <tracer-loginform submitLabel="Register" on-tracer-loginform-submit="{{register}}"></tracer-loginform>
           </tracer-card>
 
           <div layout horizontal center center-justified cross-fade>
-            <paper-button class="toggleFormButton" on-tap="{{toggleFormType}}">Already got an account?</paper-button>
-          </div>
-        </section>
-
-        <section>
-          <div layout vertical center slide-from-bottom>
-            <paper-button class="roughlyCentered button" raised on-tap="{{logout}}">Log out</paper-button>
+            <paper-button class="toggleFormButton" on-tap="{{toggleFormType}}">Already have an account?</paper-button>
           </div>
         </section>
 
@@ -131,14 +130,18 @@
 
       var loginPageIndex = 0;
       var registerPageIndex = 1;
-      var logoutPageIndex = 2;
-      var busyPageIndex = 3;
+      var busyPageIndex = 2;
 
       Polymer({
 
+        /**
+         * Fired when the login process has completed successfully.
+         * @event tracer-login-complete
+         */
+
         created: function() {
           this.api = document.createElement('tracer-loginapi');
-          this.selectedPageIndex = loginPageIndex;
+          this.selectedPageIndex = registerPageIndex;
         },
 
         register: function(e) {
@@ -162,9 +165,10 @@
 
           this.api[action](formData[0], formData[1]).then(function(user) {
             afterMinDuration(function() {
-              this.selectedPageIndex = logoutPageIndex;
+              this.selectedPageIndex = loginPageIndex;
               this.store.user = user;
               this.showToast('Logged in.');
+              this.fire('tracer-login-complete');
             }.bind(this));
           }.bind(this)).catch(function(e) {
             afterMinDuration(function() {
@@ -172,11 +176,6 @@
               this.showToast(e.message);
             }.bind(this));
           }.bind(this));
-        },
-
-        logout: function() {
-          this.selectedPageIndex = loginPageIndex;
-          this.store.user = null;
         },
 
         toggleFormType: function() {

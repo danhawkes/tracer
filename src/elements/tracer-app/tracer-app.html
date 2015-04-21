@@ -28,7 +28,6 @@
 
     <tracer-globalinjectorthing store="{{store}}"></tracer-globalinjectorthing>
 
-    <tracer-login id="loginDialog"></tracer-login>
     <tracer-about id="aboutDialog"></tracer-about>
 
     <paper-toast id="cantShowTraceToast" text="Can't show this trace while recording!"></paper-toast>
@@ -40,24 +39,30 @@
     <core-drawer-panel id="drawer" narrow="{{narrow}}">
       <core-header-panel id="drawerPanel" drawer mode="seamed">
         <core-toolbar id="drawerToolbar" class="tall">
-          <paper-button on-tap="{{showLoginPage}}" class="bottom fit userStatus" layout horizontal>
-            <template if="{{store.user}}" class="bottom indent">
-              <div flex>{{store.user.username}}</div>
-            </template>
-            <template if="{{!store.user}}" class="bottom indent">
-              <div>LOG IN</div>
-            </template>
+          <paper-button on-tap="{{showLoginPage}}" class="bottom fit userStatus" hidden?="{{store.user}}" layout
+                        horizontal>
+            <div>+ Add account</div>
+          </paper-button>
+          <paper-button on-tap="{{toggleAccountSwitcher}}" class="bottom fit userStatus" hidden?="{{!store.user}}"
+                        layout horizontal>
+            <div>{{store.user.username}}</div>
           </paper-button>
         </core-toolbar>
-        <core-menu id="menu" selectedAttribute="" selected="0" on-core-select="{{onMenuItemSelected}}">
-          <template repeat="{{menuItems}}">
-            <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
-          </template>
-        </core-menu>
-        <tracer-menuitem label="Install" on-tap="{{installApp}}"
-                         hidden?="{{!installable}}"></tracer-menuitem>
-        <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
-        <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
+        <div class="drawerMenu" hidden?="{{!showAccountSwitcher}}">
+          <tracer-menuitem label="Log Out" hidden?="{{!store.user}}" on-tap="{{logout}}"></tracer-menuitem>
+        </div>
+        <div class="drawerMenu" hidden?="{{showAccountSwitcher}}">
+          <core-menu id="navMenu" selectedAttribute="" selected="0" on-core-select="{{onNavMenuItemSelected}}">
+            <template repeat="{{menuItems}}">
+              <tracer-menuitem icon="{{icon}}" label="{{name}}"></tracer-menuitem>
+            </template>
+          </core-menu>
+          <div class="menuDivider"></div>
+          <tracer-menuitem label="Install" on-tap="{{installApp}}"
+                           hidden?="{{!installable}}"></tracer-menuitem>
+          <tracer-menuitem label="About" on-tap="{{showAboutDialog}}"></tracer-menuitem>
+          <tracer-menuitem label="" on-tap="{{toggleDemoMode}}"></tracer-menuitem>
+        </div>
       </core-header-panel>
 
       <core-header-panel main id="contentPanel">
@@ -78,7 +83,7 @@
             <tracer-traceslistpage id="tracesListPage" sizeable fit cross-fade></tracer-traceslistpage>
           </section>
           <section>
-            <tracer-loginpage id="tracesLoginPage" fit cross-fade></tracer-loginpage>
+            <tracer-loginpage id="loginPage" fit cross-fade></tracer-loginpage>
           </section>
         </core-animated-pages>
       </core-header-panel>
@@ -97,6 +102,7 @@
         this.manifestPackageUrl = location.origin + '/packaged/mini-manifest.webapp';
         this.installable = false;
         this.pageTitle = this.menuItems[0].pageTitle;
+        this.showAccountSwitcher = false;
 
         this.updateInstallButtonVisibility();
       },
@@ -110,11 +116,14 @@
           this.showSyncErrorToast();
         }.bind(this));
 
+        this.$.loginPage.addEventListener('tracer-login-complete', function() {
+          this.showRecordPage();
+        }.bind(this))
       },
 
-      onMenuItemSelected: function(e, detail) {
+      onNavMenuItemSelected: function(e, detail) {
         if (detail.isSelected) {
-          this.selectedPageIndex = this.$.menu.selected;
+          this.selectedPageIndex = this.$.navMenu.selected;
           this.pageTitle = this.menuItems[this.selectedPageIndex].pageTitle;
           this.$.drawer.closeDrawer();
         }
@@ -161,6 +170,7 @@
         this.$.syncStartedToast.show();
       },
 
+
       showSyncCompletedToast: function() {
         this.$.syncCompletedToast.show();
       },
@@ -169,15 +179,30 @@
         this.$.syncCompletedToast.show();
       },
 
+      showRecordPage: function() {
+        this.$.navMenu.selected = 0;
+      },
+
       showLoginPage: function() {
         this.$.drawer.closeDrawer();
-        this.$.menu.selected = -1;
+        this.$.navMenu.selected = -1;
         this.selectedPageIndex = 2;
+        this.showAccountSwitcher = false;
+      },
+
+      logout: function() {
+        this.store.user = null;
+        this.showAccountSwitcher = false;
+        this.showRecordPage();
       },
 
       showAboutDialog: function() {
         this.$.drawer.closeDrawer();
         this.$.aboutDialog.show();
+      },
+
+      toggleAccountSwitcher: function() {
+        this.showAccountSwitcher = !this.showAccountSwitcher;
       },
 
       toggleDemoMode: function() {

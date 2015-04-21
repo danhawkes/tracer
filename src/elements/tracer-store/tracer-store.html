@@ -25,140 +25,20 @@
       },
 
       created: function() {
-        console.log('store created');
         this.dbVersion = 5;
-        this.db = new PouchDB('local');
-
-        this._upgradeSchema().then(function() {
-          var user = window.localStorage.getItem('user');
-          if (user) {
-            this.user = JSON.parse(user);
-          }
-        }.bind(this)).catch(function(e) {
-          console.log(e);
-        });
-      },
-
-      ready: function() {
-        console.log('store ready');
-      },
-
-      _upgradeSchema: function() {
-        console.log('checking for new schema');
-        return this.db.get('version').then(function(doc) {
-
-          console.log('found existing version');
-          if (doc.version !== this.dbVersion) {
-            console.log('version does not match');
-
-            return this._deleteAllDocs().then(function() {
-              return this._createDesignDocs();
-            }.bind(this));
-
-          } else {
-            return 'aaa';
-          }
-        }.bind(this)).catch(function() {
-          console.log('did not find existing version');
-          return this._createDesignDocs();
-        }.bind(this));
-      },
-
-      _createDesignDocs: function() {
-        console.log('creating design docs');
-        return this.db.bulkDocs([{
-          _id: '_design/all',
-          language: 'javascript',
-          views: {
-            traces: {
-              map: String(function(doc) {
-                if ('trace' == doc.type) {
-                  emit(doc._id, doc);
-                }
-              })
-            },
-            tracesSummary: {
-              map: String(function(doc) {
-                if ('trace' == doc.type) {
-                  emit(doc._id, {title: doc.title, date: doc.date})
-                }
-              })
-            }
-          }
-        }, {
-          _id: 'version',
-          version: this.dbVersion
-        }]);
-      },
-
-      _deleteAllDocs: function() {
-        return this.db.allDocs().then(function(docs) {
-          var update = [];
-          docs.rows.forEach(function(doc) {
-            update.push({_id: doc.id, _rev: doc.value.rev, _deleted: true});
-          });
-          return this.db.bulkDocs(update);
-        }.bind(this));
-      },
-
-      _startSync: function(ongoing) {
-        return PouchDB.replicate(this.db, this.remoteDb, {
-          live: ongoing,
-          retry: ongoing
-        }).on('change', function(info) {
-          console.log('PouchDB ' + (info.direction === 'pull' ? 'remote' : 'local') + ' modified');
-          this.fire('modified');
-        }.bind(this)).on('complete', function(info) {
-          console.log('PouchDB sync is complete');
-          this.fire('sync-complete');
-        }.bind(this)).on('error', function(err) {
-          console.log('PouchDB error while synchronising:');
-          console.log(err);
-          this.fire('sync-error', err);
-        }.bind(this));
-      },
-
-      userChanged: function(oldValue, newValue) {
-        console.log('user changed: ' + oldValue + ' -> ' + newValue);
-
-        // Cancel any ongoing sync
-        if (this.ongoingSync) {
-          this.ongoingSync.cancel();
-          this.ongoingSync = null;
-        }
-
-        // Delete local DB
-        this._deleteAllDocs().then(function() {
-          this.fire('modified');
-        }.bind(this)).catch(function(e) {
-          console.log(e);
-        });
+        this.user = this._loadUserProfile();
+        this.db = null;
         this.remoteDb = null;
 
-        // Delete localstorage data
-        window.localStorage.removeItem('user');
-
-        // If have user to replace previous one...
-        if (this.user !== null) {
-          // Store new user and set up new remote db
-          window.localStorage.setItem('user', JSON.stringify(this.user));
-          this.remoteDb = new
-              PouchDB(this.user.dbUrl, {
-            ajax: {
-              cache: true
-            },
-            auth: {
-              username: this.user.dbCredentials[0],
-              password: this.user.dbCredentials[1]
-            }
-          });
-          // Start replication
-          this.ongoingSync = this._startSync(true);
-        }
+        this._initLocalDb().then(function() {
+          return (this.user) ? this._linkRemoteDb(this.user) : Promise.resolve();
+        }.bind(this)).catch(function(e) {
+          console.log(e);
+        });
       },
 
       sync: function() {
-        this._startSync(false);
+        this._syncRemoteDb(false);
       },
 
       saveTrace: function(trace) {
@@ -193,6 +73,166 @@
         }).catch(function(err) {
           console.log(err);
         });
+      },
+
+      userChanged: function(oldValue, newValue) {
+        console.log('user changed: ' + oldValue + ' -> ' + newValue);
+
+        function cleanUpStaleData() {
+          if (oldValue) {
+            // Delete localstorage data
+            console.log('deleting account');
+            console.log('cancelling ongoing sync');
+            console.log('deleting local db');
+
+            this._deleteUserProfile();
+            this._unlinkRemoteDb();
+            return this._deleteLocalDb();
+          } else {
+            return Promise.resolve();
+          }
+        }
+
+        cleanUpStaleData.bind(this)().then(function() {
+          return this._initLocalDb()
+        }.bind(this)).then(function() {
+          if (newValue) {
+            // Store new user and set up new remote db
+            this._saveUserProfile(this.user);
+            this._linkRemoteDb(this.user);
+            return Promise.resolve();
+          } else {
+            return Promise.resolve();
+          }
+        }.bind(this)).then(function() {
+          this.fire('modified');
+        }.bind(this));
+      },
+
+      // Local DB
+
+      _initLocalDb: function() {
+        console.log('Initialising local DB…');
+
+        this.db = new PouchDB('local');
+
+        return this.db.get('version').then(function(doc) {
+          console.log('Local DB exists. Checking for schema changes…');
+          if (doc.version !== this.dbVersion) {
+            console.log('Schema obsolete; upgrading…');
+            return this._deleteLocalDocs().then(function() {
+              return this._createLocalDesignDocs();
+            }.bind(this));
+          } else {
+            console.log('Schema up to date. Local DB ready.');
+          }
+        }.bind(this)).catch(function() {
+          console.log('Creating new DB…');
+          return this._createLocalDesignDocs().then(function() {
+            console.log('Local DB ready.')
+          }.bind(this));
+        }.bind(this));
+      },
+
+      _deleteLocalDb: function() {
+        return this.db.destroy().then(function() {
+          this.db = null;
+        }.bind(this));
+      },
+
+      _createLocalDesignDocs: function() {
+        console.log('creating design docs');
+        return this.db.bulkDocs([{
+          _id: '_design/all',
+          language: 'javascript',
+          views: {
+            traces: {
+              map: String(function(doc) {
+                if ('trace' == doc.type) {
+                  emit(doc._id, doc);
+                }
+              })
+            },
+            tracesSummary: {
+              map: String(function(doc) {
+                if ('trace' == doc.type) {
+                  emit(doc._id, {title: doc.title, date: doc.date})
+                }
+              })
+            }
+          }
+        }, {
+          _id: 'version',
+          version: this.dbVersion
+        }]);
+      },
+
+      _deleteLocalDocs: function() {
+        return this.db.allDocs().then(function(docs) {
+          var update = [];
+          docs.rows.forEach(function(doc) {
+            update.push({_id: doc.id, _rev: doc.value.rev, _deleted: true});
+          });
+          return this.db.bulkDocs(update);
+        }.bind(this));
+      },
+
+      // Remote DB
+
+      _linkRemoteDb: function(user) {
+        console.log('Linking remote DB.')
+        this.remoteDb = new
+            PouchDB(user.dbUrl, {
+          ajax: {
+            cache: true
+          },
+          auth: {
+            username: user.dbCredentials[0],
+            password: user.dbCredentials[1]
+          }
+        });
+
+        // Start replication
+        this.ongoingSync = this._syncRemoteDb(true);
+      },
+
+      _unlinkRemoteDb: function() {
+        console.log('Un-linking remote DB.')
+        this.ongoingSync.cancel();
+        this.ongoingSync = null;
+        this.remoteDb = null;
+      },
+
+      _syncRemoteDb: function(ongoing) {
+        return PouchDB.sync(this.db, this.remoteDb, {
+          live: ongoing,
+          retry: ongoing
+        }).on('change', function(info) {
+          console.log('PouchDB ' + (info.direction === 'pull' ? 'remote' : 'local') + ' modified');
+          this.fire('modified');
+        }.bind(this)).on('complete', function(info) {
+          console.log('PouchDB sync is complete');
+          this.fire('sync-complete');
+        }.bind(this)).on('error', function(err) {
+          console.log('PouchDB error while synchronising:');
+          console.log(err);
+          this.fire('sync-error', err);
+        }.bind(this));
+      },
+
+      /// Local account storage
+
+      _saveUserProfile: function(user) {
+        window.localStorage.setItem('user', JSON.stringify(user));
+      },
+
+      _loadUserProfile: function() {
+        var user = window.localStorage.getItem('user');
+        return user ? JSON.parse(user) : null;
+      },
+
+      _deleteUserProfile: function() {
+        window.localStorage.removeItem('user');
       }
     });
   </script>

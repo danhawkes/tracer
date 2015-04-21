@@ -15,8 +15,18 @@ core-header-panel#contentPanel {
   background: #f0f0f0;
 }
 
-#menu {
+:host .drawerMenu {
+  margin: 8px 0;
+}
+:host core-menu {
   margin: 0;
+}
+
+:host .menuDivider {
+  background: rgba(0, 0, 0, 0.12);
+  height: 1px;
+  display: block;
+  margin: 8px 0;
 }
 
 #container {
