@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en-US">
+<html manifest="offline.appcache" lang="en-US">
 
 <head>
   <meta charset="utf-8">
@@ -8,17 +8,16 @@
   <title>Tracer</title>
   <link rel="icon" href="images/icon-128.png" type="image/png">
 
-  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/main.css" type='text/css'>
+  <link rel="stylesheet" href="styles/roboto.css" type='text/css'>
 
   <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
-
-  <link rel="import" href="bower_components/font-roboto/roboto.html">
 
   <link rel="import" href="elements/elements.html">
 </head>
 
 <body unresolved fullbleed>
-  <tracer-app></tracer-app>
+<tracer-app></tracer-app>
 </body>
 
 </html>

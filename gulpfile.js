@@ -19,12 +19,15 @@ function clean(done) {
 }
 
 function css() {
-  return gulp.src(SRC + '/styles/*.css')
+  var filter = $.filter('**/*.css');
+  return gulp.src(SRC + '/styles/**/*.*')
+    .pipe(filter)
     .pipe($.autoprefixer({
       browsers: ['last 2 versions'],
       cascade: false
     }))
     .pipe($.minifyCss())
+    .pipe(filter.restore())
     .pipe(gulp.dest(DST + '/styles'))
     .pipe(browserSync.reload({stream: true}));
 }
@@ -35,7 +38,13 @@ function images() {
 }
 
 function src_bower_components() {
-  return gulp.src(SRC + '/bower_components/**/*')
+  return gulp.src(SRC + '/bower_components/**/*.*')
+    // Heuristic to strip out all the cruft that comes with bower install. bower-installer
+    .pipe($.filter([
+      '**/*.{html,css,js}',
+      '!**/{test,tests,doc,docs,demos,src,lib,bin}/**/*',
+      '!**/demo.html'
+    ]))
     .pipe(gulp.dest(DST + '/bower_components'));
 }
 
@@ -44,9 +53,18 @@ function src_index() {
     .pipe($.minifyHtml())
     .pipe(gulp.dest(DST))
 }
+
 function src_elements() {
   var dest = DST + '/elements';
-  if (!args.debug) {
+  if (args.debug) {
+    // Just copy sources
+    var forGrep = $.filter('**/*.{html,css,js}');
+    return gulp.src(SRC + '/elements/**/*')
+      .pipe(forGrep)
+      .pipe($.frep(config))
+      .pipe(forGrep.restore())
+      .pipe(gulp.dest(dest));
+  } else {
     // Vulcanise
     return merge(
       gulp.src(SRC + '/elements/**/*.{html,js}')
@@ -65,14 +83,20 @@ function src_elements() {
         // Vulcanize screws up resource paths for some reason, so transpose them to match.
         .pipe(gulp.dest(DST + '/src/elements'))
     );
+  }
+}
+
+function appcache(done) {
+  if (args.debug) {
+    done();
   } else {
-    // Just copy sources
-    var forGrep = $.filter('**/*.{html,css,js}');
-    return gulp.src(SRC + '/elements/**/*')
-      .pipe(forGrep)
-      .pipe($.frep(config))
-      .pipe(forGrep.restore())
-      .pipe(gulp.dest(dest));
+    return gulp.src(DST + '/**/*.*', {base: DST})
+      .pipe($.appcache({
+        network: ['*'],
+        filename: 'offline.appcache',
+        hash: true
+      }))
+      .pipe(gulp.dest(DST));
   }
 }
 
@@ -94,10 +118,9 @@ function serve() {
   });
 }
 
-
 gulp.task('clean', clean);
 
-gulp.task('build', gulp.series(clean, gulp.parallel(src_bower_components, src_index, src_elements, css, images)));
+gulp.task('build', gulp.series(clean, gulp.parallel(src_bower_components, src_index, src_elements, css, images), appcache));
 
 gulp.task('serve', gulp.series('build', gulp.parallel(watch, serve)));
 
