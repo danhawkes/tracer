@@ -133,18 +133,18 @@
       formatDuration: function(trace) {
         if (trace) {
           var d = new Date(trace.duration());
-          var s = '';
           var hours = d.getHours;
           var mins = d.getMinutes();
           var seconds = d.getSeconds();
+          var tokens = [];
           if (hours > 0) {
-            s += hours + ' hours';
+            tokens.push(hours + ' h');
           }
           if (mins > 0) {
-            s += mins + ' mins';
+            tokens.push(mins + ' mins');
           }
-          s += seconds + ' seconds';
-          return s;
+          tokens.push(seconds + ' seconds');
+          return tokens.join(' ');
         } else {
           return '';
         }
@@ -152,7 +152,7 @@
 
       formatDistance: function(trace) {
         if (trace) {
-          return 'Bloody miles!';
+          return trace.length().toPrecision(2) + ' km';
         } else {
           return '';
         }
@@ -160,7 +160,7 @@
 
       formatElevationChange: function(trace) {
         if (trace) {
-          return trace.elevationChange().toFixed(1) + 'm';
+          return trace.elevationChange();
         } else {
           return '';
         }

@@ -77,7 +77,42 @@
     },
 
     elevationChange: function() {
-      return this.duration() / 10000.0;
+      return 'unknown';
+    },
+
+    length: function() {
+      var dist = 0;
+      if (this.positions.length > 1) {
+
+
+        if (typeof(Number.prototype.toRad) === "undefined") {
+          Number.prototype.toRad = function() {
+            return this * Math.PI / 180;
+          }
+        }
+
+        // Distance in kilometers between two points using the Haversine algo.
+        function haversine(lat1, lon1, lat2, lon2) {
+          var R = 6371;
+          var dLat = (lat2 - lat1).toRad();
+          var dLong = (lon2 - lon1).toRad();
+
+          var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
+          var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return  R * c;
+        }
+
+        var p1 = this.positions[0];
+        var i, len;
+        for (i = 1, len = this.positions.length; i < len; i++) {
+          var p2 = this.positions[i];
+          dist += haversine(p1.lat, p1.lng, p2.lat, p2.lng);
+          p1 = p2;
+        }
+      }
+
+
+      return dist;
     },
 
     toDb: function() {
